@@ -187,3 +187,40 @@ if __name__ == "__main__":
     print(f"Internal STAKING_REWARD -> {determine_tax_category(InternalTransactionType.STAKING_REWARD).value}")
     print(f"Internal FEE_PAYMENT -> {determine_tax_category(InternalTransactionType.FEE_PAYMENT).value}")
     print(f"Internal DEPOSIT -> {determine_tax_category(InternalTransactionType.DEPOSIT).value}")
+
+
+def calculate_tax_liability(tx, matched_lots) -> Decimal:
+    """
+    Calculates raw gain/loss for a transaction based on matched lots.
+    Adds warnings for margin, airdrop, gift transactions.
+    Does NOT apply Freigrenze or holding period exemptions.
+    """
+    warnings = []
+
+    # Detect special cases and add warnings
+    internal_type = getattr(tx, 'internal_type', '').lower()
+    if 'margin' in internal_type:
+        warnings.append("Margin trade detected - manual review required.")
+    if 'airdrop' in internal_type:
+        warnings.append("Airdrop detected - manual review required.")
+    if 'gift' in internal_type:
+        warnings.append("Gift detected - manual review required.")
+
+    # Attach warnings to tx if possible
+    if hasattr(tx, 'warnings'):
+        tx.warnings.extend(warnings)
+    elif hasattr(tx, 'notes'):
+        # Check if notes is a string or a list
+        if isinstance(tx.notes, str):
+            if warnings:
+                tx.notes += "; " + "; ".join(warnings)
+        else:
+            # Assume it's a list-like object
+            tx.notes.extend(warnings)
+
+    proceeds = tx.cost_or_proceeds
+    total_cost_basis = sum(lot.cost_basis_eur for lot in matched_lots)
+
+    gain = proceeds - total_cost_basis
+
+    return gain

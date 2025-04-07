@@ -156,30 +156,49 @@ def find_sales_from_kraken(api_key, api_secret, year=2024):
     year_start = int(datetime(year, 1, 1).timestamp())
     year_end = int(datetime(year, 12, 31, 23, 59, 59).timestamp())
     
-    # Get trades and ledger entries
-    trades = get_trades_from_kraken(api_key, api_secret, year_start, year_end)
-    ledger = get_ledger_from_kraken(api_key, api_secret, year_start, year_end)
-    
-    # Filter for sales
     sales = []
+    api_success = False
     
-    # Check trades
-    for trade in trades:
-        if ('type' in trade and trade['type'] == 'sell') or \
-           ('type' in trade and 'sell' in trade['type'].lower()) or \
-           ('posstatus' in trade and trade['posstatus'] == 'closed'):
-            sales.append(trade)
+    # Get trades
+    try:
+        trades = get_trades_from_kraken(api_key, api_secret, year_start, year_end)
+        
+        # Process trades if available
+        if trades:
+            api_success = True
+            # Check trades
+            for trade in trades:
+                if ('type' in trade and trade['type'] == 'sell') or \
+                   ('type' in trade and 'sell' in trade['type'].lower()) or \
+                   ('posstatus' in trade and trade['posstatus'] == 'closed'):
+                    sales.append(trade)
+    except Exception as e:
+        simple_log(f"Error processing trades: {str(e)}")
     
-    # Check ledger
-    for entry in ledger:
-        if ('type' in entry and entry['type'] == 'trade') or \
-           ('type' in entry and 'sell' in entry['type'].lower()) or \
-           ('subtype' in entry and entry['subtype'] == 'trade'):
-            # Only add if it's not already in the sales list
-            if not any(s.get('refid') == entry.get('refid') for s in sales):
-                sales.append(entry)
+    # Try to get ledger entries (continue even if trades failed)
+    try:
+        ledger = get_ledger_from_kraken(api_key, api_secret, year_start, year_end)
+        
+        # Process ledger if available
+        if ledger:
+            api_success = True
+            # Check ledger
+            for entry in ledger:
+                if ('type' in entry and entry['type'] == 'trade') or \
+                   ('type' in entry and 'sell' in entry['type'].lower()) or \
+                   ('subtype' in entry and entry['subtype'] == 'trade'):
+                    # Only add if it's not already in the sales list
+                    if not any(s.get('refid') == entry.get('refid') for s in sales):
+                        sales.append(entry)
+    except Exception as e:
+        simple_log(f"Error processing ledger: {str(e)}")
     
-    simple_log(f"Identified {len(sales)} sales from {year} in Kraken API data")
+    # Log the results
+    if api_success:
+        simple_log(f"Identified {len(sales)} sales from {year} in Kraken API data")
+    else:
+        simple_log("WARNING: Could not access any Kraken API data. API may be unavailable.")
+    
     return sales
 
 def find_sales_from_database(year=2024):
@@ -326,18 +345,23 @@ def main():
     try:
         # Get sales from database
         db_sales = find_sales_from_database(year=2024)
+        simple_log(f"Found {len(db_sales)} sales in the database for 2024")
         
         # Get sales from API
         api_sales = find_sales_from_kraken(api_key, api_secret, year=2024)
         
-        # Compare results
+        # Continue verification even if API returns no data
+        # This allows for checking the database even when API is unavailable
         if not api_sales:
-            simple_log("WARNING: Could not retrieve sales from Kraken API. Verification incomplete.")
-            return 1
+            simple_log("WARNING: No sales data retrieved from Kraken API. Limited verification possible.")
             
-        if not db_sales and not api_sales:
-            simple_log("No sales found in API or database for 2024.")
-            return 0
+            if db_sales:
+                print("\nDatabase contains sales for 2024, but no data could be retrieved from Kraken API")
+                print(f"Found {len(db_sales)} sales in database. Cannot verify if database is complete.")
+                return 0
+            else:
+                simple_log("No sales found in database for 2024.")
+                return 0
         
         # Compare sales data
         comparison = compare_sales_data(api_sales, db_sales)

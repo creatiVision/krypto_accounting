@@ -17,14 +17,8 @@ getcontext().prec = 18 # Sufficient for most crypto assets
 def log_event(event: str, details: str):
     print(f"[LOG] {event}: {details}")
 
-# Placeholder for price fetching function (will be imported from price_api)
-def get_historical_price_eur(asset: str, timestamp: int) -> Optional[Decimal]:
-    # This is a placeholder - the actual function will be imported
-    log_event("FIFO Placeholder", f"Placeholder price fetch for {asset} at {timestamp}")
-    # Return a dummy value for structure, replace with actual import later
-    if asset == "BTC": return Decimal("25000.0")
-    if asset == "ETH": return Decimal("1800.0")
-    return Decimal("1.0") # Fallback placeholder ONLY
+# Import the real price function
+from .price_api import get_historical_price_eur
 
 @dataclass
 class HoldingLot:
@@ -98,6 +92,43 @@ class FifoCalculator:
         self.holdings[asset_upper].sort(key=lambda x: x.purchase_timestamp)
         # log_event("FIFO Purchase", f"Added {amount} {asset_upper} @ {price_eur:.4f} EUR (Ref: {refid})") # Verbose
 
+    def match_lots(self, asset: str, amount: Decimal, timestamp: int, refid: str) -> List[Tuple[HoldingLot, Decimal]]:
+        """Matches lots using FIFO for a given disposal amount."""
+        asset_upper = asset.upper()
+        remaining_to_dispose = amount
+        matched_lots: List[Tuple[HoldingLot, Decimal]] = []
+        lots_to_remove_indices: List[int] = []
+        partial_lot_update: Optional[Tuple[int, Decimal]] = None
+
+        if asset_upper not in self.holdings or not self.holdings[asset_upper]:
+            log_event("FIFO Error", f"Cannot match lots for {amount} {asset_upper} (Ref: {refid}) - No holdings available.")
+            return []
+
+        for idx, lot in enumerate(self.holdings[asset_upper]):
+            if remaining_to_dispose <= 0:
+                break
+
+            amount_from_this_lot = min(remaining_to_dispose, lot.amount)
+            matched_lots.append((lot, amount_from_this_lot))
+
+            remaining_to_dispose -= amount_from_this_lot
+            remaining_in_lot = lot.amount - amount_from_this_lot
+
+            if remaining_in_lot <= Decimal('1e-12'):
+                lots_to_remove_indices.append(idx)
+            else:
+                partial_lot_update = (idx, remaining_in_lot)
+                break
+
+        if partial_lot_update:
+            idx, remaining_amount = partial_lot_update
+            self.holdings[asset_upper][idx].amount = remaining_amount
+
+        for idx in sorted(lots_to_remove_indices, reverse=True):
+            self.holdings[asset_upper].pop(idx)
+
+        return matched_lots
+
     def process_disposal(self, asset: str, amount: Decimal, sale_price_eur: Decimal, timestamp: int, refid: str, fee_eur: Decimal) -> DisposalResult:
         """Processes a disposal (sale, fee payment, etc.) using FIFO."""
         asset_upper = asset.upper()
@@ -141,66 +172,57 @@ class FifoCalculator:
             amount_from_this_lot = min(remaining_to_dispose, lot.amount)
             cost_basis_from_this_lot = amount_from_this_lot * lot.purchase_price_eur
             total_cost_basis += cost_basis_from_this_lot
-
-            # Store details of the match
+            
+            # Calculate holding period
+            holding_period_days = (disposal_datetime - lot.purchase_datetime).days
+            holding_periods_weighted.append((holding_period_days, amount_from_this_lot))
+            
             matched_lots_details.append((lot, amount_from_this_lot))
-
-            # Calculate holding period for this portion
-            purchase_datetime = datetime.fromtimestamp(lot.purchase_timestamp, timezone.utc)
-            holding_days = (disposal_datetime - purchase_datetime).days
-            holding_periods_weighted.append((holding_days, amount_from_this_lot))
-
-            # Update remaining amounts
+            
             remaining_to_dispose -= amount_from_this_lot
             remaining_in_lot = lot.amount - amount_from_this_lot
-
-            if remaining_in_lot <= Decimal('1e-12'): # Use tolerance for float precision
+            
+            if remaining_in_lot <= Decimal('1e-12'):  # Effectively zero
                 lots_to_remove_indices.append(idx)
             else:
-                # This lot was partially used, store update info
                 partial_lot_update = (idx, remaining_in_lot)
-                # Important: Break here if partially used, as we only update one lot per disposal pass
-                # Or handle multiple partials? Simpler to update one and let next disposal handle rest.
-                # For now, assume we fully consume or partially consume ONE lot at the end.
-                break # Stop matching further lots if this one was partially used
-
-        # Check if the full disposal amount was covered
-        if remaining_to_dispose > Decimal('1e-12'): # Tolerance
-            notes.append(f"WARNING: Insufficient holdings to cover full disposal of {amount} {asset_upper}. Short by {remaining_to_dispose:.8f}.")
-            log_event("FIFO Warning", f"Insufficient holdings for disposal {refid}. Short by {remaining_to_dispose} {asset_upper}")
-            # Adjust disposed amount to what was actually covered?
-            # amount = amount - remaining_to_dispose # This changes proceeds, maybe not right.
-            # Report based on original amount, but note the shortfall.
-
-        # Update the holdings list
-        # 1. Apply partial update if any
+                break
+        
+        # Update holdings: Apply partial lot update if any
         if partial_lot_update:
             idx, remaining_amount = partial_lot_update
             self.holdings[asset_upper][idx].amount = remaining_amount
-            # log_event("FIFO Update", f"Partially used lot {self.holdings[asset_upper][idx].purchase_tx_refid}: {remaining_amount} {asset_upper} remaining.") # Verbose
-
-        # 2. Remove fully consumed lots (in reverse order to avoid index issues)
+        
+        # Remove fully used lots (in reverse order to not affect indices)
         for idx in sorted(lots_to_remove_indices, reverse=True):
-            removed_lot = self.holdings[asset_upper].pop(idx)
-            # log_event("FIFO Update", f"Fully consumed lot {removed_lot.purchase_tx_refid} ({removed_lot.amount} {asset_upper}).") # Verbose
-
-
-        # Calculate final results
-        gain_loss = total_proceeds - total_cost_basis - fee_eur
-
-        # Determine taxability (based on German 1-year rule)
-        # TODO: Import HOLDING_PERIOD_DAYS from tax_rules module
-        holding_period_limit = 365
-        is_taxable = any(days <= holding_period_limit for days, _ in holding_periods_weighted)
-
-        # Calculate average holding period (weighted by amount)
-        total_days_weighted = sum(days * amt for days, amt in holding_periods_weighted)
-        total_amount_matched = sum(amt for _, amt in holding_periods_weighted)
-        avg_holding_days = int(total_days_weighted / total_amount_matched) if total_amount_matched > 0 else 0
-
+            self.holdings[asset_upper].pop(idx)
+        
+        # Verify we've matched all the disposal amount
+        if remaining_to_dispose > Decimal('1e-12'):  # More than epsilon
+            shortage = remaining_to_dispose
+            notes.append(f"WARNING: Insufficient holdings to cover full disposal. Short by {shortage} {asset_upper}")
+            log_event("FIFO Warning", f"Disposal of {amount} {asset_upper} (Ref: {refid}) exceeds available holdings by {shortage}")
+        
+        # Calculate weighted average holding period
+        total_weighted_days = Decimal(0)
+        total_weight = Decimal(0)
+        for days, weight in holding_periods_weighted:
+            total_weighted_days += Decimal(days) * weight
+            total_weight += weight
+        
+        avg_holding_period = int(total_weighted_days / total_weight) if total_weight > 0 else 0
+        
+        # Check if any matched lot was held ≤ 1 year (365 days)
+        taxable_status = any(days <= 365 for days, _ in holding_periods_weighted)
+        
+        # Calculate final values
+        total_proceeds_adjusted = total_proceeds - fee_eur  # Adjust for fees
+        gain_loss = total_proceeds_adjusted - total_cost_basis
+        
+        # Create and return the result
         return DisposalResult(
             asset=asset_upper,
-            disposed_amount=amount, # Report original intended amount
+            disposed_amount=amount,
             sale_price_eur=sale_price_eur,
             sale_timestamp=timestamp,
             sale_tx_refid=refid,
@@ -209,68 +231,7 @@ class FifoCalculator:
             total_cost_basis_eur=total_cost_basis,
             gain_loss_eur=gain_loss,
             matched_lots=matched_lots_details,
-            taxable_status=is_taxable,
-            holding_period_days_avg=avg_holding_days,
+            taxable_status=taxable_status,
+            holding_period_days_avg=avg_holding_period,
             notes=notes
         )
-
-    def get_holdings_summary(self) -> Dict[str, Dict[str, Decimal]]:
-        """Returns a summary of current holdings."""
-        summary = {}
-        for asset, lots in self.holdings.items():
-            total_amount = sum(lot.amount for lot in lots)
-            if total_amount > Decimal('1e-12'): # Only report if holding exists
-                avg_cost = sum(lot.cost_basis_eur for lot in lots) / total_amount if total_amount else Decimal(0)
-                summary[asset] = {"amount": total_amount, "average_cost_eur": avg_cost}
-        return summary
-
-# Example usage (for testing this module directly)
-if __name__ == "__main__":
-    print("Testing FIFO Calculator module...")
-    calc = FifoCalculator()
-
-    # Scenario: Buy BTC, Buy more BTC, Sell some BTC
-    ts1 = int(datetime(2022, 1, 10).timestamp())
-    ts2 = int(datetime(2022, 5, 15).timestamp())
-    ts3 = int(datetime(2023, 3, 20).timestamp()) # More than 1 year after ts1, less than 1 year after ts2
-
-    print("\nAdding Purchases...")
-    calc.add_purchase("BTC", Decimal("0.5"), Decimal("35000.0"), ts1, "BUY001")
-    calc.add_purchase("BTC", Decimal("0.3"), Decimal("40000.0"), ts2, "BUY002")
-
-    print("\nCurrent Holdings:")
-    print(calc.get_holdings_summary())
-
-    print("\nProcessing Sale...")
-    # Sell 0.6 BTC (0.5 from first lot, 0.1 from second lot)
-    sale_price = Decimal("45000.0")
-    sale_fee = Decimal("25.0")
-    disposal_result = calc.process_disposal("BTC", Decimal("0.6"), sale_price, ts3, "SELL001", sale_fee)
-
-    print("\nDisposal Result:")
-    print(f"  Asset: {disposal_result.asset}")
-    print(f"  Amount Sold: {disposal_result.disposed_amount}")
-    print(f"  Sale Price: {disposal_result.sale_price_eur:.2f} EUR")
-    print(f"  Proceeds: {disposal_result.total_proceeds_eur:.2f} EUR")
-    print(f"  Cost Basis: {disposal_result.total_cost_basis_eur:.2f} EUR")
-    print(f"  Fee: {disposal_result.fee_eur:.2f} EUR")
-    print(f"  Gain/Loss: {disposal_result.gain_loss_eur:.2f} EUR")
-    print(f"  Avg Holding (days): {disposal_result.holding_period_days_avg}")
-    print(f"  Taxable: {disposal_result.taxable_status}")
-    print(f"  Notes: {disposal_result.notes}")
-    print("  Matched Lots:")
-    for lot, amount_used in disposal_result.matched_lots:
-        holding_days = (datetime.fromtimestamp(ts3, timezone.utc) - datetime.fromtimestamp(lot.purchase_timestamp, timezone.utc)).days
-        print(f"    - Used {amount_used:.8f} from Lot {lot.purchase_tx_refid} (Purchased {lot.purchase_date_str} @ {lot.purchase_price_eur:.2f} EUR, Held {holding_days} days)")
-
-    print("\nHoldings After Sale:")
-    print(calc.get_holdings_summary())
-
-    # Scenario: Sell more than available
-    print("\nProcessing Sale (Insufficient Holdings)...")
-    disposal_result_err = calc.process_disposal("BTC", Decimal("1.0"), sale_price, ts3 + 86400, "SELL002", sale_fee)
-    print("\nDisposal Result (Error):")
-    print(f"  Gain/Loss: {disposal_result_err.gain_loss_eur:.2f} EUR")
-    print(f"  Notes: {disposal_result_err.notes}")
-    print("\nHoldings After Error Sale:")
-    print(calc.get_holdings_summary()) # Should be unchanged from previous summary

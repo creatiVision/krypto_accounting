@@ -2,7 +2,13 @@
 .env
 .env.*
 !.env.template
-/zz_archive/mbay-tax-sheet-for-kryptos-7fc01e35fb9a.json
+
+# Google Credentials File
+*-credentials*.json
+*.credentials.json
+*-tax-sheet-*.json
+
+# Folders
 export/
 backup/
 zz_archive/

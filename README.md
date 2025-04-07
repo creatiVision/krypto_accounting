@@ -98,12 +98,14 @@ The `main.py` script orchestrates the following steps:
 6.  **Configure Google Sheets (Optional):**
     *   If you want to export to Google Sheets:
         *   Follow Google Cloud instructions to create a service account and download its JSON credentials file.
+        *   Place the credentials JSON file in the project root directory (the same directory as the `start.sh` script).
         *   Add the following to your `.env` file:
             ```dotenv
             GOOGLE_SHEET_ID=YOUR_TARGET_GOOGLE_SHEET_ID
-            GOOGLE_CREDENTIALS_FILE=path/relative/to/accounting/dir/your_credentials.json
+            GOOGLE_CREDENTIALS_FILE=your-credentials-filename.json
             ```
         *   Make sure the service account has edit permissions on the target Google Sheet.
+        *   **Security Note:** Credential files are automatically excluded from Git via `.gitignore` to prevent accidental commits of sensitive information.
 
 ## Usage
 

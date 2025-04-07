@@ -1,8 +1,0 @@
-Timestamp;Event;Details
-2025-04-02 21:54:02.875;Start;Crypto Tax Calculator starting for tax year 2022
-2025-04-02 21:54:02.891;API Fetch;Fetching data up to 2022-12-31 23:59:59+00:00
-2025-04-02 21:54:03.169;Processing;Starting transaction processing for tax year 2022...
-2025-04-02 21:54:03.169;Processing;Sorted 13 raw transactions.
-2025-04-02 21:54:03.169;Processing;Standardized 13 transactions and attempted EUR valuation.
-2025-04-02 21:54:03.170;Processing;Generated 5 report entries for tax year 2022.
-2025-04-02 21:54:03.170;Aggregation;Aggregated results: Net Sales(§23)=0.00€, Other Income(§22)=0.00€

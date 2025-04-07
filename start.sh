@@ -7,38 +7,18 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Function to display information with a header
+function display_info() {
+    local header=$1
+    local message=$2
+    echo -e "\n${BLUE}==================== $header ====================${NC}"
+    echo -e "$message"
+    echo
+}
+
 echo -e "${BLUE}=======================================${NC}"
 echo -e "${GREEN}Crypto Tax Calculator${NC}"
 echo -e "${BLUE}=======================================${NC}"
-
-# Function to display multiple choice options and get user selection
-function choose_option() {
-    local prompt=$1
-    shift
-    local options=("$@")
-    local selected=0
-    
-    echo -e "${YELLOW}$prompt${NC}"
-    echo
-    # Display options with numbers before the description
-    for i in "${!options[@]}"; do
-        echo -e "  ${GREEN}$(($i+1)).${NC} ${options[$i]}"
-    done
-    echo
-    
-    while true; do
-        read -p "Enter your choice [1-${#options[@]}]: " choice
-        
-        if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#options[@]}" ]; then
-            selected=$((choice-1))
-            break
-        else
-            echo -e "${RED}Invalid selection. Please try again.${NC}"
-        fi
-    done
-    
-    echo "${options[$selected]}"
-}
 
 # Check if virtual environment exists, create if not
 if [ ! -d "venv" ]; then
@@ -51,131 +31,117 @@ else
     source venv/bin/activate
 fi
 
-# 1. Choose the mode
-echo -e "\n${BLUE}==================== Operation Mode ====================${NC}"
-echo -e "Choose how you want to run the tax calculator:\n"
-echo -e "  ${GREEN}1.${NC} ${YELLOW}Online (Kraken API)${NC}: Uses your real Kraken account data via API"
-echo -e "  ${GREEN}2.${NC} ${YELLOW}Offline Demo${NC}: Uses mock transaction data for testing/demonstration"
-echo
-MODE=$(choose_option "Select operation mode:" "Online (Kraken API)" "Offline Demo (Mock Data)")
+# Set up parameters
+OUTPUT_DIR="export"
+echo -e "${GREEN}Running with Kraken API${NC}"
+mkdir -p "$OUTPUT_DIR"
 
-# 2. Input the tax year directly (4 digits)
-echo -e "\n${BLUE}==================== Tax Year ====================${NC}"
-echo -e "This is the calendar year for which the tax calculations will be made."
-echo -e "All transactions from January 1st to December 31st of this year will be included."
-echo
+# 1. Choose tax year from options
+display_info "Tax Year" "This is the calendar year for which the tax calculations will be made.\nAll transactions from January 1st to December 31st of this year will be included."
 
 CURRENT_YEAR=$(date +%Y)
-while true; do
-    read -p "Enter tax year (4 digits, 2010-$CURRENT_YEAR): " TAX_YEAR
-    
-    # Validate input is a 4-digit year within acceptable range
-    if [[ "$TAX_YEAR" =~ ^[0-9]{4}$ ]] && [ "$TAX_YEAR" -ge 2010 ] && [ "$TAX_YEAR" -le "$CURRENT_YEAR" ]; then
-        break
-    else
-        echo -e "${RED}Invalid year. Please enter a 4-digit year between 2010 and $CURRENT_YEAR.${NC}"
-    fi
-done
+
+# Display year options directly
+echo -e "Available tax years:"
+echo -e "  1. $CURRENT_YEAR"
+echo -e "  2. $(($CURRENT_YEAR-1))"
+echo -e "  3. $(($CURRENT_YEAR-2))"
+echo -e "  4. $(($CURRENT_YEAR-3))"
+echo -e "  5. $(($CURRENT_YEAR-4))"
+echo -e ""
+echo -e "Please enter a number from 1 to 5:"
+read -p "Your choice [1-5]: " choice
+
+case $choice in
+    1) TAX_YEAR=$CURRENT_YEAR ;;
+    2) TAX_YEAR=$(($CURRENT_YEAR-1)) ;;
+    3) TAX_YEAR=$(($CURRENT_YEAR-2)) ;;
+    4) TAX_YEAR=$(($CURRENT_YEAR-3)) ;;
+    5) TAX_YEAR=$(($CURRENT_YEAR-4)) ;;
+    *) 
+        echo -e "Invalid choice. Defaulting to $CURRENT_YEAR."
+        TAX_YEAR=$CURRENT_YEAR 
+        ;;
+esac
+
 echo -e "Tax year set to: ${YELLOW}$TAX_YEAR${NC}"
 
-# 3. Choose the export format
-echo -e "\n${BLUE}==================== Report Format ====================${NC}"
-echo -e "Choose the format for your tax report:\n"
-echo -e "  ${GREEN}1.${NC} ${YELLOW}CSV${NC}: Comma-separated values format (can be opened in Excel, Google Sheets, etc.)"
-echo -e "  ${GREEN}2.${NC} ${YELLOW}Excel${NC}: Native Excel spreadsheet format (.xlsx)"
-echo -e "  ${GREEN}3.${NC} ${YELLOW}JSON${NC}: JSON format (machine-readable, good for data processing)"
-echo
-EXPORT_FORMAT=$(choose_option "Select export format:" "CSV" "Excel" "JSON")
-EXPORT_FORMAT_LOWER=$(echo "$EXPORT_FORMAT" | tr '[:upper:]' '[:lower:]')
+# 2. Choose Export Format
+display_info "Export Format" "Choose the format for your tax reports."
 
-# 4. Choose the output directory
+echo -e "Available formats:"
+echo -e "  1. CSV (Comma-Separated Values)"
+echo -e "  2. JSON (JavaScript Object Notation)"
+echo -e "  3. Excel (requires openpyxl installed)"
+echo -e ""
+echo -e "Please enter a number from 1 to 3:"
+read -p "Your choice [1-3]: " choice
+
+case $choice in
+    1) 
+        EXPORT_FORMAT="CSV (Comma-Separated Values)"
+        EXPORT_FORMAT_LOWER="csv"
+        ;;
+    2) 
+        EXPORT_FORMAT="JSON (JavaScript Object Notation)"
+        EXPORT_FORMAT_LOWER="json"
+        ;;
+    3) 
+        EXPORT_FORMAT="Excel (requires openpyxl installed)"
+        EXPORT_FORMAT_LOWER="excel"
+        ;;
+    *) 
+        echo -e "Invalid choice. Defaulting to CSV."
+        EXPORT_FORMAT="CSV (Comma-Separated Values)"
+        EXPORT_FORMAT_LOWER="csv"
+        ;;
+esac
+
+echo -e "Export format set to: ${YELLOW}$EXPORT_FORMAT${NC}"
+
 echo -e "\n${BLUE}==================== Output Location ====================${NC}"
-echo -e "Choose where to save the generated reports:\n"
-echo -e "  ${GREEN}1.${NC} ${YELLOW}export${NC}: Standard directory for reports (recommended)"
-echo -e "  ${GREEN}2.${NC} ${YELLOW}demo_export${NC}: Directory for demo/test reports"
-echo -e "  ${GREEN}3.${NC} ${YELLOW}custom${NC}: Specify your own directory path"
-echo
-OUTPUT_DIR=$(choose_option "Select output directory:" "export" "demo_export" "custom")
-if [ "$OUTPUT_DIR" = "custom" ]; then
-    read -p "Enter custom output directory path: " OUTPUT_DIR
-fi
+echo -e "Reports will be saved to the ${YELLOW}$OUTPUT_DIR${NC} directory.\n"
 
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
 
-# 5. Choose verbose logging
-echo -e "\n${BLUE}==================== Logging Detail ====================${NC}"
-echo -e "Verbose logging provides detailed information about the calculation process:\n"
-echo -e "  ${GREEN}1.${NC} ${YELLOW}No${NC}: Standard logging (errors and important messages only)"
-echo -e "  ${GREEN}2.${NC} ${YELLOW}Yes${NC}: Detailed logging (shows all operations and decisions)"
-echo
-VERBOSE=$(choose_option "Enable verbose logging?" "No" "Yes")
-VERBOSE_FLAG=""
-if [ "$VERBOSE" = "Yes" ]; then
-    VERBOSE_FLAG="--verbose"
-fi
-
-# 6. If offline mode, choose mock data option
-GENERATE_NEW_DATA_FLAG=""
-if [ "$MODE" = "Offline Demo (Mock Data)" ]; then
-    echo -e "\n${BLUE}==================== Mock Data Options ====================${NC}"
-    echo -e "Choose whether to use existing mock data or generate new random data:\n"
-    echo -e "  ${GREEN}1.${NC} ${YELLOW}No (use existing)${NC}: Use pre-defined mock transactions"
-    echo -e "  ${GREEN}2.${NC} ${YELLOW}Yes (generate new)${NC}: Generate new random transactions each time"
-    echo
-    GENERATE_NEW_DATA=$(choose_option "Generate new mock data?" "No (use existing)" "Yes (generate new)")
-    if [ "$GENERATE_NEW_DATA" = "Yes (generate new)" ]; then
-        GENERATE_NEW_DATA_FLAG="--generate-new-data"
-    fi
+# Load credentials from .env file if it exists
+if [ -f ".env" ]; then
+    source .env
 fi
 
 # Set up Python path
 export PYTHONPATH="$PWD/src:$PYTHONPATH"
 
-# Run the application based on selected mode
+# Run the application
 echo -e "${BLUE}=======================================${NC}"
 echo -e "${GREEN}Starting Crypto Tax Calculator with:${NC}"
-echo -e "  Mode: ${YELLOW}$MODE${NC}"
 echo -e "  Tax Year: ${YELLOW}$TAX_YEAR${NC}"
 echo -e "  Export Format: ${YELLOW}$EXPORT_FORMAT${NC}"
 echo -e "  Output Directory: ${YELLOW}$OUTPUT_DIR${NC}"
-echo -e "  Verbose Logging: ${YELLOW}$VERBOSE${NC}"
-if [ "$MODE" = "Offline Demo (Mock Data)" ] && [ "$GENERATE_NEW_DATA" = "Yes (generate new)" ]; then
-    echo -e "  Generate New Mock Data: ${YELLOW}Yes${NC}"
-fi
 echo -e "${BLUE}=======================================${NC}"
 
-if [ "$MODE" = "Offline Demo (Mock Data)" ]; then
-    python3 run_offline_demo.py --tax-year "$TAX_YEAR" $GENERATE_NEW_DATA_FLAG
-else
-    # Online mode with Kraken API
-    # Check for .env file and load credentials
-    if [ -f ".env" ]; then
-        echo -e "${GREEN}Loading Kraken API credentials from .env file...${NC}"
-        # Source the .env file to load environment variables
-        source .env
-    else
-        echo -e "${RED}Error: .env file not found!${NC}"
-        echo -e "${YELLOW}Please create a .env file with your Kraken API credentials:${NC}"
-        echo -e "  1. Copy .env.template to .env"
-        echo -e "  2. Edit .env and add your Kraken API key and secret"
-        echo -e "\nExample:"
-        echo -e "  cp .env.template .env"
-        echo -e "  nano .env   # or use any text editor\n"
-        exit 1
-    fi
-    
-    # Verify that credentials are loaded
-    if [ -z "$KRAKEN_API_KEY" ] || [ -z "$KRAKEN_API_SECRET" ]; then
-        echo -e "${RED}Error: Kraken API credentials not found in .env file!${NC}"
-        echo -e "${YELLOW}Please ensure your .env file contains:${NC}"
-        echo -e "  KRAKEN_API_KEY=your_api_key_here"
-        echo -e "  KRAKEN_API_SECRET=your_api_secret_here"
-        exit 1
-    fi
-    
-    python3 -m src.crypto_tax_calculator.main --tax-year "$TAX_YEAR" --export-format "$EXPORT_FORMAT_LOWER" --output-dir "$OUTPUT_DIR" $VERBOSE_FLAG
+# Check Kraken API credentials
+echo -e "${GREEN}Checking Kraken API credentials...${NC}"
+
+# Verify that credentials are loaded
+if [ -z "$KRAKEN_API_KEY" ] || [ -z "$KRAKEN_API_SECRET" ]; then
+    echo -e "${RED}Error: Kraken API credentials not found!${NC}"
+    echo -e "${YELLOW}Please check your .env file contains the following:${NC}"
+    echo -e "  KRAKEN_API_KEY=your_api_key_here"
+    echo -e "  KRAKEN_API_SECRET=your_api_secret_here"
+    echo -e "\nIf you haven't created the .env file yet, follow these steps:"
+    echo -e "  1. Copy the template: cp .env.template .env"
+    echo -e "  2. Edit the new .env file and add your Kraken API credentials"
+    echo -e "\nExample:"
+    echo -e "  nano .env  # Use your preferred text editor"
+    echo -e "\nAfter setting up your credentials, run this script again."
+    exit 1
 fi
+echo -e "${GREEN}Kraken API credentials loaded successfully.${NC}"
+
+# Run the calculator
+./venv/bin/python -m src.crypto_tax_calculator.main --tax-year "$TAX_YEAR" --export-format "$EXPORT_FORMAT_LOWER" --output-dir "$OUTPUT_DIR"
 
 # Print completion message
 echo -e "${GREEN}Tax calculation complete! Reports available in the ${YELLOW}$OUTPUT_DIR${GREEN} directory.${NC}"
