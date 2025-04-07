@@ -1,0 +1,637 @@
+#!/usr/bin/env python3
+"""
+Krypto-Accounting for German Tax Compliance
+-------------------------------------------
+This script processes cryptocurrency transactions from Kraken and generates
+tax reports that comply with German tax regulations (§23 EStG and BMF guidelines).
+
+Key features:
+- Separation of transaction types according to German tax classification
+- FIFO calculation with explicit documentation for tax authority review
+- Proper handling of different holding periods and tax treatments
+- Compliance with BMF Schreiben guidelines for crypto taxation
+- Automatic flagging of transactions requiring special tax treatment
+- Year-to-year tracking with proper documentation
+"""
+
+import subprocess
+import sys
+import json
+import csv
+import os
+from pathlib import Path
+from datetime import datetime, timezone, timedelta
+import time
+import hmac
+import hashlib
+import base64
+import requests
+from typing import Dict, List, Any, Tuple, Optional, Union, Set
+
+try:
+    from google.oauth2.service_account import Credentials
+    from googleapiclient.discovery import build
+except ImportError:
+    print("Google API libraries not found. Will install required packages.")
+
+# --- Constants for German Tax Compliance ---
+HOLDING_PERIOD_DAYS = 365  # Standard holding period for private sale transactions (§23 EStG)
+REPORTING_CURRENCY = "EUR"  # Currency for tax reporting
+FREIGRENZE_2024_ONWARDS = 1000.00  # Tax-free allowance from 2024 onwards (in EUR)
+FREIGRENZE_UNTIL_2023 = 600.00  # Tax-free allowance until 2023 (in EUR)
+
+# Define tax categories according to German law
+TAX_CATEGORY = {
+    "PRIVATE_SALE": "§23 EStG Private Veräußerungsgeschäfte",
+    "MINING": "§15/§22 EStG Einkünfte aus Mining",
+    "STAKING": "§22 EStG Einkünfte aus Staking",
+    "LENDING": "§20 EStG Einkünfte aus Lending",
+    "AIRDROP": "§22 EStG Sonstige Einkünfte (Airdrops)",
+    "BUSINESS": "§15 EStG Gewerbliche Einkünfte",
+}
+
+# --- Log Data Storage ---
+LOG_DATA = []
+
+# --- Global Variables ---
+HOLDINGS: Dict[str, List[Dict[str, Any]]] = {}
+PRICE_CACHE: Dict[Tuple[str, int], float] = {}
+
+# --- Sheet Headers and Configuration ---
+# Main tax report headers
+HEADERS = [
+    "Zeile", "Typ", "Steuer-Kategorie", "Transaktionsdatum", "Asset", "Anzahl", 
+    "Kaufdatum", "Kaufpreis (€)/Stk", "Verkaufsdatum", "Verkaufspreis (€)/Stk", 
+    "Kosten (€)", "Erlös (€)", "Gebühr (€)", "Gewinn / Verlust (€)", "Haltedauer (Tage)", 
+    "Steuerpflichtig", "Besondere Hinweise", "Notizen / FIFO-Details"
+]
+
+# Raw transaction headers
+RAW_HEADERS = [
+    "Type", "Time", "Asset", "Amount", "Fee", "Cost", "Price",
+    "Vol", "Ordertxid", "Refid", "Subtype", "Aclass", "Balance"
+]
+
+# Transaction types with special tax treatment
+SPECIAL_TX_TYPES = {
+    "staking": "Staking-Reward (besondere steuerliche Behandlung)",
+    "mining": "Mining-Reward (besondere steuerliche Behandlung)",
+    "airdrop": "Airdrop (besondere steuerliche Behandlung)",
+    "lending": "Lending-Reward (besondere steuerliche Behandlung)"
+}
+
+# --- Define log_event before it is used ---
+def log_event(event: str, details: str) -> None:
+    """Log an event with a timestamp for debugging purposes."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    LOG_DATA.append([timestamp, event, details])
+
+# --- Import required packages directly ---
+try:
+    # Force-import required packages
+    import requests
+    import google.auth
+    from google.oauth2.service_account import Credentials
+    from googleapiclient.discovery import build
+except ImportError as e:
+    print(f"Error importing required packages: {e}")
+    print("Please run this script using setup_venv_and_run.sh which will set up a virtual environment with all required packages.")
+    sys.exit(1)
+
+# --- Configuration Loading ---
+CONFIG_FILE = Path(__file__).parent / "config.json"
+CREDENTIALS_FILE = Path(__file__).parent / "mbay-tax-sheet-for-kryptos-7fc01e35fb9a.json"
+print(f"Looking for config file at: {CONFIG_FILE}")
+print(f"Looking for credentials file at: {CREDENTIALS_FILE}")
+
+try:
+    with CONFIG_FILE.open('r') as f:
+        config = json.load(f)
+    API_KEY = config["API_KEY"]
+    API_SECRET = config["API_SECRET"]
+    SHEET_ID = config["SHEET_ID"]
+    THEFT_TXIDS = config.get("theft_txids", [])
+    START_DATE_STR = config.get("start_date")
+    END_DATE_STR = config.get("end_date", None)
+    START_TIMESTAMP = None
+    END_TIMESTAMP = int(datetime.now(timezone.utc).timestamp()) if not END_DATE_STR else None
+    
+    # Handle tax treatment configuration
+    TAX_CONFIG = config.get("tax_config", {})
+    MINING_ADDRESSES = TAX_CONFIG.get("mining_addresses", [])
+    STAKING_ADDRESSES = TAX_CONFIG.get("staking_addresses", [])
+    BUSINESS_TREATMENT = TAX_CONFIG.get("business_treatment", False)
+    
+    if START_DATE_STR:
+        START_TIMESTAMP = int(datetime.strptime(START_DATE_STR, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp())
+    if END_DATE_STR:
+        END_TIMESTAMP = int(datetime.strptime(END_DATE_STR, "%Y-%m-%d").replace(
+            hour=23, minute=59, second=59, tzinfo=timezone.utc).timestamp())
+except FileNotFoundError:
+    print(f"ERROR: Config file not found at: {CONFIG_FILE}")
+    sys.exit(1)
+except KeyError as e:
+    print(f"ERROR: Missing required key in config.json: {e}")
+    sys.exit(1)
+
+# --- Google API Setup ---
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+creds = Credentials.from_service_account_file(str(CREDENTIALS_FILE), scopes=SCOPES)
+service = build("sheets", "v4", credentials=creds)
+
+# --- Kraken API Request Function ---
+def kraken_request(endpoint: str, data: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+    """Make a signed request to the Kraken private API."""
+    url = f"https://api.kraken.com/0/private/{endpoint}"
+    if data is None:
+        data = {}
+    data["nonce"] = str(int(time.time() * 100000))
+    post_data = "&".join([f"{k}={v}" for k, v in data.items()])
+    encoded = (str(data["nonce"]) + post_data).encode()
+    message = f"/0/private/{endpoint}".encode() + hashlib.sha256(encoded).digest()
+    signature = hmac.new(base64.b64decode(API_SECRET), message, hashlib.sha512)
+    sig = base64.b64encode(signature.digest()).decode()
+    headers = {"API-Key": API_KEY, "API-Sign": sig}
+    max_retries, wait_time = 3, 5
+    
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(url, headers=headers, data=data, timeout=45)
+            response.raise_for_status()
+            result = response.json()
+            if result.get("error"):
+                error_messages = result["error"]
+                if any("Nonce" in e for e in error_messages) and attempt < max_retries - 1:
+                    time.sleep(wait_time * (attempt + 1))
+                    data["nonce"] = str(int(time.time() * 100000))
+                    continue
+                raise Exception(f"API error: {error_messages}")
+            return result
+        except requests.exceptions.RequestException as e:
+            if attempt == max_retries - 1:
+                raise Exception(f"API request failed after {max_retries} attempts: {e}")
+            time.sleep(wait_time * (attempt + 1))
+    
+    raise Exception(f"API call {endpoint} failed after all retries.")
+
+# --- Data Fetching Functions ---
+def get_trades(start_ts: Optional[int] = None, end_ts: Optional[int] = None) -> List[Dict[str, Any]]:
+    """Fetch trade history from Kraken API with pagination."""
+    trades_dict = {}
+    offset = 0
+    fetch_params: Dict[str, str] = {"trades": "true"}
+    
+    if start_ts:
+        fetch_params["start"] = str(start_ts)
+    if end_ts:
+        fetch_params["end"] = str(end_ts)
+        
+    while True:
+        current_params = {"ofs": str(offset), **fetch_params}
+        result = kraken_request("TradesHistory", current_params)
+        batch_dict = result.get("result", {}).get("trades", {})
+        trades_dict.update(batch_dict)
+        offset += len(batch_dict)
+        
+        if not batch_dict or offset >= int(result.get("result", {}).get("count", 0)):
+            break
+            
+        time.sleep(1.1)  # Respect API rate limits
+    
+    return list(trades_dict.values())
+
+def get_ledger(start_ts: Optional[int] = None, end_ts: Optional[int] = None) -> List[Dict[str, Any]]:
+    """Fetch ledger entries from Kraken API with pagination."""
+    ledger_dict = {}
+    offset = 0
+    fetch_params: Dict[str, str] = {}
+    
+    if start_ts:
+        fetch_params["start"] = str(start_ts)
+    if end_ts:
+        fetch_params["end"] = str(end_ts)
+        
+    while True:
+        current_params = {"ofs": str(offset), **fetch_params}
+        result = kraken_request("Ledgers", current_params)
+        batch_dict = result.get("result", {}).get("ledger", {})
+        ledger_dict.update(batch_dict)
+        offset += len(batch_dict)
+        
+        if not batch_dict or offset >= int(result.get("result", {}).get("count", 0)):
+            break
+            
+        time.sleep(1.1)  # Respect API rate limits
+    
+    return list(ledger_dict.values())
+
+# --- Price Fetching Function ---
+def get_market_price(asset: str, timestamp: float) -> float:
+    """
+    Fetch market price for an asset at a given timestamp.
+    For German tax compliance, accurate price determination is crucial.
+    """
+    asset_map = {
+        "ETH": "ETH/EUR", "XETH": "ETH/EUR", "XBT": "XBT/EUR", "XXBT": "XBT/EUR", "BTC": "XBT/EUR",
+        "XRP": "XRP/EUR", "XXRP": "XRP/EUR", "ADA": "ADA/EUR", "LTC": "LTC/EUR", "XLM": "XLM/EUR",
+        "EOS": "EOS/EUR", "ETC": "ETC/EUR", "AVAX": "AVAX/EUR", "ARB": "ARB/EUR", "EUR": None,
+        "ZEUR": None, "KFEE": None
+    }
+    
+    pair = asset_map.get(asset)
+    if not pair:
+        log_event("Price Warning", f"No trading pair found for asset {asset}, using zero price")
+        return 0
+        
+    timestamp_int = int(timestamp)
+    cache_key = (pair, timestamp_int // 3600)
+    
+    if cache_key in PRICE_CACHE:
+        return PRICE_CACHE[cache_key]
+    
+    # Try to get historical price data
+    since_time = timestamp_int - 3600
+    url = "https://api.kraken.com/0/public/Trades"
+    params = {"pair": pair, "since": str(since_time)}
+    
+    try:
+        response = requests.get(url, params=params, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+        pair_data_key = next((k for k in data.get("result", {}).keys() if k != 'last'), None)
+        
+        if not pair_data_key or not data["result"].get(pair_data_key):
+            log_event("Price Warning", f"No price data found for {asset} at timestamp {timestamp}")
+            PRICE_CACHE[cache_key] = 0
+            return 0
+            
+        pair_trades = data["result"][pair_data_key]
+        
+        # Find the closest price before the timestamp
+        for trade in reversed(pair_trades):
+            if float(trade[2]) <= timestamp:
+                PRICE_CACHE[cache_key] = float(trade[0])
+                log_event("Price Found", f"Found price for {asset}: {PRICE_CACHE[cache_key]} EUR")
+                return PRICE_CACHE[cache_key]
+                
+        # If no price found before timestamp, use the earliest available
+        if pair_trades:
+            PRICE_CACHE[cache_key] = float(pair_trades[0][0])
+            log_event("Price Warning", f"Using earliest available price for {asset}: {PRICE_CACHE[cache_key]} EUR")
+            return PRICE_CACHE[cache_key]
+        else:
+            PRICE_CACHE[cache_key] = 0
+            return 0
+            
+    except requests.exceptions.RequestException as e:
+        log_event("Price Error", f"Error fetching price for {asset}: {str(e)}")
+        PRICE_CACHE[cache_key] = 0
+        return 0
+
+# --- Transaction Categorization Functions ---
+def determine_tax_category(tx_type: str, asset: str, address: Optional[str] = None,
+                          holding_period: int = 0) -> str:
+    """
+    Determine the tax category according to German tax regulations.
+    This is crucial for proper tax treatment.
+    """
+    # Check for special transaction types first
+    if tx_type.lower() in ["mining", "mined"]:
+        return TAX_CATEGORY["MINING"]
+    elif tx_type.lower() in ["staking", "stake", "reward"]:
+        return TAX_CATEGORY["STAKING"]
+    elif tx_type.lower() in ["lending", "interest", "earn"]:
+        return TAX_CATEGORY["LENDING"]
+    elif tx_type.lower() in ["airdrop", "drop"]:
+        return TAX_CATEGORY["AIRDROP"]
+    
+    # Check for business treatment
+    if BUSINESS_TREATMENT:
+        return TAX_CATEGORY["BUSINESS"]
+    
+    # For sales, check holding period for private sale treatment
+    if tx_type.lower() in ["verkauf", "sale", "sell"]:
+        return TAX_CATEGORY["PRIVATE_SALE"]
+    
+    # Default to private sale for unknown types
+    return TAX_CATEGORY["PRIVATE_SALE"]
+
+def check_special_tax_treatment(row: List[Any]) -> str:
+    """
+    Check if a transaction requires special tax treatment according to German regulations.
+    Returns warning messages for transactions that need special attention.
+    """
+    warnings = []
+    tax_category = row[2]
+    
+    # Check for staking income (potential special tax treatment)
+    if "Staking" in tax_category:
+        warnings.append("Staking-Erträge: Besondere steuerliche Behandlung nach BMF-Schreiben beachten")
+    
+    # Check for mining income
+    elif "Mining" in tax_category:
+        warnings.append("Mining-Erträge: Gewerbliche Einkünfte prüfen")
+    
+    # Check for lending/interest income
+    elif "Lending" in tax_category or "§20" in tax_category:
+        warnings.append("Lending-Erträge: Einkünfte aus Kapitalvermögen prüfen")
+    
+    # Check for airdrops
+    elif "Airdrop" in tax_category:
+        warnings.append("Airdrop: Zufluss als sonstige Einkünfte prüfen")
+    
+    # Check for high value or high frequency trading
+    transaction_value = 0
+    if isinstance(row[11], (int, float)):  # Proceeds column
+        transaction_value = row[11]
+    elif isinstance(row[10], (int, float)):  # Cost column
+        transaction_value = row[10]
+        
+    if transaction_value > 10000:
+        warnings.append(f"Hoher Transaktionswert ({transaction_value:.2f} EUR): Mögliche gewerbliche Prägung prüfen")
+    
+    # Check for short-term trading
+    if row[1] == "Verkauf" and isinstance(row[14], (int, float)) and row[14] < 30:
+        warnings.append(f"Sehr kurze Haltedauer ({row[14]} Tage): Mögliche gewerbliche Prägung prüfen")
+    
+    return " | ".join(warnings) if warnings else ""
+
+# --- ID Assignment Function for Transaction Tracking ---
+def assign_transaction_id(event_type: str, timestamp: float, asset: str, amount: float) -> str:
+    """
+    Create a unique, deterministic ID for each transaction to help with tracking and documentation.
+    This is important for German tax authorities to verify FIFO calculations.
+    """
+    # Create a string representation of the key transaction data
+    id_string = f"{event_type}_{timestamp}_{asset}_{amount:.8f}"
+    
+    # Create a hash-based ID
+    tx_id = hashlib.md5(id_string.encode()).hexdigest()[:12]
+    
+    return f"TX-{tx_id}"
+
+# --- Utility Function ---
+def get_or_create_sheet(spreadsheet_id: str, sheet_name: str) -> Tuple[str, int]:
+    """Get or create a sheet in the Google Spreadsheet."""
+    spreadsheet = service.spreadsheets().get(
+        spreadsheetId=spreadsheet_id).execute()
+    sheets = spreadsheet.get('sheets', [])
+    existing_sheet = next(
+        (s for s in sheets if s['properties']['title'] == sheet_name), None)
+    if existing_sheet:
+        return sheet_name, existing_sheet['properties']['sheetId']
+    req = {"addSheet": {"properties": {"title": sheet_name,
+                                       "gridProperties": {"rowCount": 2000, "columnCount": len(HEADERS)}}}}
+    res = service.spreadsheets().batchUpdate(
+        spreadsheetId=spreadsheet_id, body={"requests": [req]}).execute()
+    sheet_id = res['replies'][0]['addSheet']['properties']['sheetId']
+    return sheet_name, sheet_id
+
+# --- Write Raw Transactions to Sheets ---
+def write_raw_transactions_to_sheets(transactions: List[Dict[str, Any]]) -> None:
+    """Write raw transaction data to a Google Sheet for reference."""
+    sheet_name = "Rohdaten Transaktionen"
+    sheet_name, sheet_id = get_or_create_sheet(SHEET_ID, sheet_name)
+
+    # Clear the sheet before writing new data
+    service.spreadsheets().values().clear(
+        spreadsheetId=SHEET_ID, range=sheet_name).execute()
+
+    # Prepare data rows
+    data_rows = [RAW_HEADERS]
+    for tx in transactions:
+        row = [
+            tx.get("type", ""),
+            datetime.fromtimestamp(float(tx.get("time", 0)), timezone.utc).strftime(
+                "%Y-%m-%d %H:%M:%S") if tx.get("time") else "",
+            tx.get("asset", ""),
+            tx.get("amount", ""),
+            tx.get("fee", ""),
+            tx.get("cost", ""),
+            tx.get("price", ""),
+            tx.get("vol", ""),
+            tx.get("ordertxid", ""),
+            tx.get("refid", ""),
+            tx.get("subtype", ""),
+            tx.get("aclass", ""),
+            tx.get("balance", "")
+        ]
+        data_rows.append(row)
+
+    # Write data to the sheet
+    body = {"values": [list(map(str, row)) for row in data_rows]}
+    service.spreadsheets().values().update(
+        spreadsheetId=SHEET_ID, range=f"{sheet_name}!A1", valueInputOption="USER_ENTERED", body=body
+    ).execute()
+    
+    # Format the raw transactions sheet
+    format_requests = {
+        "requests": [
+            # Format header row
+            {
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "startRowIndex": 0,
+                        "endRowIndex": 1,
+                        "startColumnIndex": 0,
+                        "endColumnIndex": len(RAW_HEADERS)
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "backgroundColor": {
+                                "red": 0.8,
+                                "green": 0.8,
+                                "blue": 0.8
+                            },
+                            "horizontalAlignment": "CENTER",
+                            "textFormat": {
+                                "bold": True
+                            }
+                        }
+                    },
+                    "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
+                }
+            },
+            # Auto-resize columns
+            {
+                "autoResizeDimensions": {
+                    "dimensions": {
+                        "sheetId": sheet_id,
+                        "dimension": "COLUMNS",
+                        "startIndex": 0,
+                        "endIndex": len(RAW_HEADERS)
+                    }
+                }
+            }
+        ]
+    }
+    service.spreadsheets().batchUpdate(
+        spreadsheetId=SHEET_ID, body=format_requests).execute()
+    
+    log_event("Raw Transactions", f"Wrote {len(data_rows)-1} raw transactions to sheet")
+    print("Raw Transactions sheet written.")
+
+# --- Grouping Function ---
+def group_by_year(trades: List[Dict[str, Any]], ledger: List[Dict[str, Any]]) -> Dict[int, Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]]:
+    """Group trades and ledger entries by year."""
+    trades_by_year: Dict[int, List[Dict[str, Any]]] = {}
+    ledger_by_year: Dict[int, List[Dict[str, Any]]] = {}
+    
+    for trade in trades:
+        year = datetime.fromtimestamp(float(trade["time"]), timezone.utc).year
+        trades_by_year.setdefault(year, []).append(trade)
+    
+    for entry in ledger:
+        year = datetime.fromtimestamp(float(entry["time"]), timezone.utc).year
+        ledger_by_year.setdefault(year, []).append(entry)
+    
+    all_years = set(trades_by_year.keys()).union(ledger_by_year.keys())
+    
+    return {
+        year: (
+            sorted(trades_by_year.get(year, []), key=lambda x: float(x["time"])),
+            sorted(ledger_by_year.get(year, []), key=lambda x: float(x["time"]))
+        )
+        for year in sorted(all_years)
+    }
+
+# --- Export Utility Functions ---
+def export_to_csv(tax_data: List[List[Any]], year: int) -> str:
+    """
+    Export tax data to CSV format for use with external tax software.
+    Returns the path to the exported file.
+    """
+    output_directory = Path(__file__).parent / "export"
+    output_directory.mkdir(exist_ok=True)
+    
+    output_file = output_directory / f"crypto_steuer_{year}.csv"
+    
+    with open(output_file, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f, delimiter=';')
+        for row in tax_data:
+            writer.writerow(row)
+    
+    log_event("CSV Export", f"Exported tax data for {year} to {output_file}")
+    return str(output_file)
+
+def export_detailed_fifo_documentation(year: int) -> str:
+    """
+    Export detailed FIFO calculations to a separate file for tax authority review.
+    Returns the path to the exported file.
+    """
+    output_directory = Path(__file__).parent / "export"
+    output_directory.mkdir(exist_ok=True)
+    
+    output_file = output_directory / f"fifo_nachweis_{year}.txt"
+    
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(f"FIFO Nachweis für Steuerjahr {year}\n")
+        f.write("=" * 80 + "\n\n")
+        
+        f.write("Gemäß BMF-Schreiben zur steuerlichen Behandlung von Kryptowährungen\n")
+        f.write("werden die Coins nach dem FIFO-Prinzip (First In - First Out) behandelt.\n\n")
+        
+        f.write("Übersicht der Coin-Bestände und Verkäufe:\n")
+        f.write("-" * 80 + "\n")
+        
+        for asset, lots in HOLDINGS.items():
+            f.write(f"\nAsset: {asset}\n")
+            f.write("-" * 40 + "\n")
+            for i, lot in enumerate(lots):
+                f.write(f"Lot {i+1}:\n")
+                f.write(f"  Erworben am: {datetime.fromtimestamp(lot['timestamp'], timezone.utc).strftime('%Y-%m-%d')}\n")
+                f.write(f"  Menge: {lot['amount']:.8f}\n")
+                f.write(f"  Preis: {lot['price_eur']:.2f} EUR\n")
+                f.write(f"  Referenz: {lot['refid']}\n")
+                if 'year' in lot and lot['year'] < year:
+                    f.write(f"  Hinweis: Erworben in einem Vorjahr ({lot['year']})\n")
+    
+    log_event("FIFO Documentation", f"Exported FIFO documentation for {year} to {output_file}")
+    return str(output_file)
+
+# --- Main Processing Function ---
+def process_for_tax(trades: List[Dict[str, Any]], ledger: List[Dict[str, Any]], year: int) -> List[List[Any]]:
+    """
+    Process trades and ledger entries for tax reporting with enhanced
+    German tax compliance checks and documentation.
+    """
+    tax_data = [HEADERS]
+    events = [
+        {"type": "trade", "data": trade, "time": float(trade.get("time", 0))} for trade in trades
+    ] + [
+        {"type": "ledger", "data": entry, "time": float(entry.get("time", 0))} for entry in ledger
+    ]
+    
+    # Sort events by timestamp
+    events = sorted([e for e in events if e["time"] > 0], key=lambda x: x["time"])
+    
+    line_num = 1
+    processed_refids = set()
+    
+    # Initialize HOLDINGS from previous years' data if this is not the first year
+    # This ensures we have the correct cost basis for assets purchased in previous years
+    global HOLDINGS
+    
+    # Process all events for the current year
+    for event in events:
+        timestamp = event["time"]
+        if datetime.fromtimestamp(timestamp, timezone.utc).year != year:
+            continue
+        
+        date_str = datetime.fromtimestamp(timestamp, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        data = event["data"]
+        row_base = [""] * len(HEADERS)
+        row_base[0] = line_num + 1  # Zeile
+
+        # Handle EUR deposits and withdrawals
+        if event["type"] == "ledger" and data.get("asset") in ["EUR", "ZEUR"]:
+            entry_type = data.get("type", "").capitalize()
+            amount = float(data.get("amount", 0))
+            fee = float(data.get("fee", 0))
+            refid = data.get("refid", f"ledger_{timestamp}")
+
+            if refid in processed_refids:
+                continue
+
+            row_base[1] = "EUR Einzahlung" if entry_type == "Deposit" else "EUR Auszahlung" if entry_type == "Withdrawal" else f"Ledger ({entry_type})"
+            row_base[2] = "Nicht steuerpflichtig"  # EUR operations are generally not taxable
+            row_base[3] = date_str
+            row_base[4] = "EUR"
+            row_base[5] = amount
+            row_base[6] = "N/A"
+            row_base[7] = 0.0
+            row_base[8] = "N/A"
+            row_base[9] = 0.0
+            row_base[10] = 0.0
+            row_base[11] = 0.0
+            row_base[12] = fee
+            row_base[13] = 0.0
+            row_base[14] = 0
+            row_base[15] = "Nein"
+            row_base[16] = ""  # No special tax notes for EUR transactions
+            row_base[17] = f"Ledger Ref: {refid} | {'Unhandled: ' + entry_type if entry_type not in ['Deposit', 'Withdrawal'] else ''}"
+            
+            # Assign transaction ID
+            tx_id = assign_transaction_id("EUR", timestamp, "EUR", amount)
+            row_base[17] += f" | ID: {tx_id}"
+            
+            tax_data.append(row_base)
+            line_num += 1
+            processed_refids.add(refid)
+            
+        # Handle crypto purchases, sales and trades
+        elif event["type"] == "trade":
+            trade_data = data
+            pair = trade_data.get("pair", "")
+            type_ = trade_data.get("type", "")
+            price = float(trade_data.get("price", 0))
+            amount = float(trade_data.get("amount", 0))
+            cost = float(trade_data.get("cost", 0))
+            fee = float(trade_data.get("fee", 0))
+            refid = trade_data.get("refid", f"trade_{timestamp}")
+            
+            if refid in processed_refids:
+                continue
+                
+            # Determine base and quote asset from

@@ -1,0 +1,126 @@
+FIFO Nachweis für Steuerjahr 2024
+================================================================================
+
+Gemäß BMF-Schreiben zur steuerlichen Behandlung von Kryptowährungen
+werden Veräußerungen nach dem FIFO-Prinzip (First In - First Out) behandelt.
+
+Detailaufstellung der Veräußerungen:
+--------------------------------------------------------------------------------
+
+Veräußerung #1:
+  Datum: 2024-01-04
+  Asset: ETH
+  Verkaufte Menge: 1.00000000
+  Verkaufspreis/Stk: 2074.5600 €
+  Gesamterlös: 2074.56 €
+  Gebühr: 0.00 €
+  FIFO-Zuordnung:
+    - Lot 1: 0.26246719 von Kauf am 2023-04-18 @ 1916.0100 €/Stk, Haltedauer: 261 Tage
+    - Lot 2: 0.58799293 von Kauf am 2023-08-14 @ 1688.7100 €/Stk, Haltedauer: 143 Tage
+  Gesamtkosten (FIFO): 1495.84 €
+  Gewinn/Verlust: 578.72 €
+  Haltedauer (Durchschnitt): 179 Tage
+  Steuerpflichtig: Ja (Haltedauer <= 1 Jahr, steuerpflichtig)
+  Notizen: WARNING: Insufficient holdings to cover full disposal of 1.0000000000 ETH. Short by 0.14953988.
+----------------------------------------
+
+Veräußerung #2:
+  Datum: 2024-01-10
+  Asset: ADA
+  Verkaufte Menge: 1356.25396900
+  Verkaufspreis/Stk: 0.5156 €
+  Gesamterlös: 699.27 €
+  Gebühr: 0.00 €
+  FIFO-Zuordnung:
+    - Lot 1: 15.00000000 von Kauf am 2023-04-19 @ 0.3814 €/Stk, Haltedauer: 266 Tage
+    - Lot 2: 15.00000000 von Kauf am 2023-04-19 @ 0.3804 €/Stk, Haltedauer: 266 Tage
+    - Lot 3: 1033.77869720 von Kauf am 2023-04-19 @ 0.3814 €/Stk, Haltedauer: 266 Tage
+    - Lot 4: 292.47527180 von Kauf am 2023-04-19 @ 0.3804 €/Stk, Haltedauer: 266 Tage
+  Gesamtkosten (FIFO): 516.97 €
+  Gewinn/Verlust: 182.30 €
+  Haltedauer (Durchschnitt): 266 Tage
+  Steuerpflichtig: Ja (Haltedauer <= 1 Jahr, steuerpflichtig)
+----------------------------------------
+
+Veräußerung #3:
+  Datum: 2024-05-09
+  Asset: AVAX
+  Verkaufte Menge: 15.84977000
+  Verkaufspreis/Stk: 32.3800 €
+  Gesamterlös: 513.22 €
+  Gebühr: 0.00 €
+  FIFO-Zuordnung:
+    - N/A
+  Gesamtkosten (FIFO): 0.00 €
+  Gewinn/Verlust: 513.22 €
+  Haltedauer (Durchschnitt): 0 Tage
+  Steuerpflichtig: Nein (Haltedauer > 1 Jahr, steuerfrei)
+  Notizen: ERROR: No prior holdings found for AVAX to cover disposal.
+----------------------------------------
+
+Veräußerung #4:
+  Datum: 2024-05-23
+  Asset: ETH
+  Verkaufte Menge: 0.45161000
+  Verkaufspreis/Stk: 3497.0800 €
+  Gesamterlös: 1579.32 €
+  Gebühr: 0.00 €
+  FIFO-Zuordnung:
+    - N/A
+  Gesamtkosten (FIFO): 0.00 €
+  Gewinn/Verlust: 1579.32 €
+  Haltedauer (Durchschnitt): 0 Tage
+  Steuerpflichtig: Nein (Haltedauer > 1 Jahr, steuerfrei)
+  Notizen: ERROR: No prior holdings found for ETH to cover disposal.
+----------------------------------------
+
+Veräußerung #5:
+  Datum: 2024-05-23
+  Asset: ADA
+  Verkaufte Menge: 452.08465700
+  Verkaufspreis/Stk: 0.4308 €
+  Gesamterlös: 194.75 €
+  Gebühr: 0.00 €
+  FIFO-Zuordnung:
+    - Lot 1: 452.08465700 von Kauf am 2023-04-19 @ 0.3804 €/Stk, Haltedauer: 400 Tage
+  Gesamtkosten (FIFO): 171.98 €
+  Gewinn/Verlust: 22.77 €
+  Haltedauer (Durchschnitt): 400 Tage
+  Steuerpflichtig: Nein (Haltedauer > 1 Jahr, steuerfrei)
+----------------------------------------
+
+Veräußerung #6:
+  Datum: 2024-05-23
+  Asset: ARB
+  Verkaufte Menge: 172.56000000
+  Verkaufspreis/Stk: 1.1124 €
+  Gesamterlös: 191.96 €
+  Gebühr: 0.00 €
+  FIFO-Zuordnung:
+    - Lot 1: 50.00000000 von Kauf am 2023-04-18 @ 1.5223 €/Stk, Haltedauer: 401 Tage
+    - Lot 2: 50.00000000 von Kauf am 2023-04-18 @ 1.5153 €/Stk, Haltedauer: 401 Tage
+  Gesamtkosten (FIFO): 151.88 €
+  Gewinn/Verlust: 40.08 €
+  Haltedauer (Durchschnitt): 401 Tage
+  Steuerpflichtig: Nein (Haltedauer > 1 Jahr, steuerfrei)
+  Notizen: WARNING: Insufficient holdings to cover full disposal of 172.56000 ARB. Short by 72.56000000.
+----------------------------------------
+
+
+================================================================================
+Steuerliche Zusammenfassung
+================================================================================
+
+Steuerjahr: 2024
+
+Private Veräußerungsgeschäfte (§23 EStG):
+  Gesamtgewinne: 761.03 €
+  Gesamtverluste: 0.00 €
+  Nettobetrag (§23): 761.03 €
+  Freigrenze (§23): 1000.00 €
+  Steuerpflichtig (§23): Nein
+
+Sonstige Einkünfte (§22 Nr. 3 EStG):
+  Gesamteinkünfte (z.B. Staking): 0.00 €
+  Freigrenze (§22): 256.00 €
+  Steuerpflichtig (§22): Nein

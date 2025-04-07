@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""
+Runner script for the German tax-compliant crypto accounting tool.
+This script runs the krypto-accounting_german_tax.py module and generates
+tax reports according to §23 EStG and BMF guidelines.
+"""
+
+import os
+import sys
+import json
+import subprocess
+from pathlib import Path
+from datetime import datetime
+
+# Check for Python version
+if sys.version_info < (3, 8):
+    print("This script requires Python 3.8 or higher")
+    sys.exit(1)
+
+# Find the script directory
+SCRIPT_DIR = Path(__file__).parent.absolute()
+
+def main():
+    """Main function to run the tax reporting tool."""
+    print("=" * 80)
+    print("Crypto Tax Reporter for German Tax Compliance")
+    print("=" * 80)
+
+    # Check if config.json exists and has required fields
+    config_path = SCRIPT_DIR / "config.json"
+    if not config_path.exists():
+        print(f"Error: Configuration file not found at {config_path}")
+        print("Please create a config.json file with your API keys and settings.")
+        sys.exit(1)
+
+    # Load and validate config
+    with open(config_path, 'r') as f:
+        config = json.load(f)
+
+    required_fields = ["API_KEY", "API_SECRET", "SHEET_ID"]
+    missing = [field for field in required_fields if field not in config]
+    if missing:
+        print(f"Error: Missing required configuration fields: {' '.join(missing)}")
+        sys.exit(1)
+
+    # Get tax year to generate report for
+    try:
+        if len(sys.argv) > 1:
+            tax_year = int(sys.argv[1])
+        else:
+            tax_year = int(input("Enter tax year to generate report for (e.g. 2022): "))
+
+        if tax_year < 2010 or tax_year > datetime.now().year:
+            print(f"Warning: Year {tax_year} is outside the expected range. Proceeding anyway.")
+    except ValueError:
+        print("Error: Tax year must be a valid integer.")
+        sys.exit(1)
+
+    # Check and install required packages
+    required_packages = ["requests", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client"]
+
+    # When running in our venv from setup_venv_and_run.sh we can skip this check
+    # as the packages are already installed in the virtual environment
+    try:
+        # Force imports of the necessary packages
+        import requests
+        import google.auth
+        from google.oauth2.service_account import Credentials
+        from googleapiclient.discovery import build
+        print("All required packages are available!")
+    except ImportError as e:
+        print(f"Import error: {e}")
+        print("Please run this script using setup_venv_and_run.sh")
+        sys.exit(1)
+
+    # Import the tax calculation module
+    # We do this here instead of at the top to avoid dependency errors being shown too early
+    try:
+        sys.path.append(str(SCRIPT_DIR))
+        # Create a clean namespace and execute the module
+        # This approach avoids import conflicts and provides better error handling
+        tax_module_path = SCRIPT_DIR / "krypto-accounting_german_tax.py"
+        namespace = {
+            '__file__': str(tax_module_path),  # Add __file__ to the namespace
+            '__name__': '__main__'  # Ensure module thinks it's being run directly
+        }
+        with open(tax_module_path, 'r') as file:
+            exec(file.read(), namespace)
+
+        # Extract necessary functions
+        get_trades = namespace.get("get_trades")
+        get_ledger = namespace.get("get_ledger")
+        process_for_tax = namespace.get("process_for_tax")
+        export_to_csv = namespace.get("export_to_csv")
+        export_detailed_fifo_documentation = namespace.get("export_detailed_fifo_documentation")
+        write_raw_transactions_to_sheets = namespace.get("write_raw_transactions_to_sheets")
+
+        if not all([get_trades, get_ledger, process_for_tax]):
+            print("Error: Could not import necessary functions from the tax module.")
+            sys.exit(1)
+
+    except Exception as e:
+        print(f"Error loading tax calculation module: {e}")
+        sys.exit(1)
+
+    # Set date range for the tax year
+    start_date = f"{tax_year}-01-01"
+    end_date = f"{tax_year}-12-31"
+
+    # Update config with the selected year
+    config["start_date"] = start_date
+    config["end_date"] = end_date
+    with open(config_path, 'w') as f:
+        json.dump(config, f, indent=2)
+
+    print(f"\nGenerating tax report for year {tax_year}...")
+    print(f"Date range: {start_date} to {end_date}")
+
+    try:
+        # Try to fetch data from Kraken
+        print("\nFetching trade data from Kraken...")
+        trades = get_trades()
+        print(f"Retrieved {len(trades)} trades.")
+
+        print("\nFetching ledger entries from Kraken...")
+        ledger = get_ledger()
+        print(f"Retrieved {len(ledger)} ledger entries.")
+
+        # Process transactions
+        print("\nProcessing transactions for tax reporting...")
+        tax_data = process_for_tax(trades, ledger, tax_year)
+        print(f"Generated {len(tax_data) - 1} tax entries.") # -1 for header row
+
+        # Export data
+        print("\nExporting data...")
+        csv_path = export_to_csv(tax_data, tax_year)
+        print(f"Exported CSV to: {csv_path}")
+
+        fifo_doc_path = export_detailed_fifo_documentation(tax_year)
+        print(f"Exported FIFO documentation to: {fifo_doc_path}")
+
+        # Write to Google Sheets
+        print("\nWriting to Google Sheets...")
+        write_raw_transactions_to_sheets(trades + ledger)
+        print("Raw transaction data written to Google Sheets.")
+
+        print("\nTax reporting completed successfully!")
+        print(f"Results have been saved to Google Sheet ID: {config['SHEET_ID']}")
+        print("You can now review the data in the sheet and finalize your tax declaration.")
+
+    except Exception as e:
+        print(f"\nError during tax report generation: {e}")
+        import traceback
+        print(traceback.format_exc())
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

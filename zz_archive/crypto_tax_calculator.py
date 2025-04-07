@@ -1,0 +1,1057 @@
+#!/usr/bin/env python3
+"""
+German Crypto Tax Calculator
+===========================
+
+This script calculates taxable gains and losses from cryptocurrency transactions
+according to German tax law (§23 EStG). It combines functionality from multiple
+scripts into a single, streamlined solution.
+
+Features:
+- Retrieves transaction data from Kraken API
+- Calculates gains/losses using FIFO method
+- Generates tax reports in CSV format
+- Exports data to Google Sheets (if configured)
+- Creates detailed FIFO documentation for tax authorities
+
+Usage:
+    python3 crypto_tax_calculator.py [TAX_YEAR]
+"""
+
+import csv
+import json
+import os
+import sys
+import time
+from datetime import date, datetime, timezone, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Any, Union
+import traceback
+
+# --- Constants ---
+VERSION = "1.1.0"
+HOLDING_PERIOD_DAYS = 365  # One year holding period for tax-free status
+FREIGRENZE_UNTIL_2023 = 600.0  # Tax exemption limit until 2023
+FREIGRENZE_2024_ONWARDS = 1000.0  # New tax exemption limit from 2024 onwards
+
+# Global data structures
+HOLDINGS = {}  # Tracks cryptocurrency holdings for FIFO calculation
+LOG_DATA = []  # For activity logging
+CONFIG = {}    # Configuration data
+
+# Tax category descriptions
+TAX_CATEGORIES = {
+    "private_sale": "Privates Veräußerungsgeschäft (§23 EStG)",
+    "mining": "Mining-Einkünfte (besondere steuerliche Behandlung)",
+    "staking": "Staking-Reward (besondere steuerliche Behandlung)",
+    "lending": "Lending-Reward (besondere steuerliche Behandlung)"
+}
+
+# Define the HEADERS for the report
+HEADERS = [
+    "Zeile", "Typ", "Steuer-Kategorie", "Transaktionsdatum", "Asset", "Anzahl", 
+    "Kaufdatum", "Kaufpreis (€)/Stk", "Verkaufsdatum", "Verkaufspreis (€)/Stk", 
+    "Kosten (€)", "Erlös (€)", "Gebühr (€)", "Gewinn / Verlust (€)", "Haltedauer (Tage)", 
+    "Haltedauer > 1 Jahr", "Steuerpflichtig", "Steuergrund", "FIFO-Details", "Notizen"
+]
+
+# --- Logging Function ---
+def log_event(event: str, details: str) -> None:
+    """Log an event with a timestamp for debugging purposes."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    LOG_DATA.append([timestamp, event, details])
+    print(f"[{timestamp}] {event}: {details}")
+
+# --- Import required packages directly ---
+try:
+    import requests
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build
+except ImportError as e:
+    log_event("Import Error", f"Failed to import required packages: {str(e)}")
+    print(f"Error: {e}")
+    print("Required Python packages not found. Please run 'pip install requests google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client'")
+    sys.exit(1)
+
+# --- Configuration Functions ---
+def load_config() -> Dict:
+    """Load configuration from config.json"""
+    config_path = Path(__file__).parent / "config.json"
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            config = json.load(f)
+        log_event("Config", "Successfully loaded configuration")
+        return config
+    except Exception as e:
+        log_event("Config Error", f"Failed to load configuration: {str(e)}")
+        print(f"Error loading configuration: {e}")
+        sys.exit(1)
+
+def check_config(config: Dict) -> bool:
+    """Check if configuration has all required fields"""
+    required_fields = ["API_KEY", "API_SECRET", "SHEET_ID"]
+    missing = [field for field in required_fields if field not in config]
+    
+    if missing:
+        log_event("Config Error", f"Missing required configuration fields: {' '.join(missing)}")
+        print(f"Error: Missing required configuration fields: {' '.join(missing)}")
+        return False
+    
+    return True
+
+# --- Kraken API Functions ---
+def get_kraken_signature(urlpath: str, data: Dict, secret: str) -> str:
+    """Create API signature for Kraken private API requests"""
+    import base64
+    import hashlib
+    import hmac
+    import urllib.parse
+    
+    postdata = urllib.parse.urlencode(data)
+    encoded = (str(data['nonce']) + postdata).encode()
+    message = urlpath.encode() + hashlib.sha256(encoded).digest()
+    
+    mac = hmac.new(base64.b64decode(secret), message, hashlib.sha512)
+    sigdigest = base64.b64encode(mac.digest())
+    return sigdigest.decode()
+
+def kraken_request(uri_path: str, data: Dict, api_key: str, api_sec: str) -> Dict:
+    """Make a request to Kraken API"""
+    headers = {'API-Key': api_key, 'API-Sign': get_kraken_signature(uri_path, data, api_sec)}
+    
+    try:
+        print(f"Sending request to Kraken API: {uri_path}")
+        print(f"Request data: {data}")
+        
+        response = requests.post(
+            'https://api.kraken.com' + uri_path, 
+            headers=headers, 
+            data=data,
+            timeout=30
+        )
+        
+        print(f"Response status code: {response.status_code}")
+        response_data = response.json()
+        
+        if response.status_code != 200:
+            error_msg = f"Kraken API returned status code {response.status_code}: {response_data}"
+            log_event("API Error", error_msg)
+            print(f"ERROR: {error_msg}")
+            return {"error": response_data.get("error", ["Unknown API error"])}
+        
+        if "error" in response_data and response_data["error"]:
+            error_msg = f"Kraken API returned error: {response_data['error']}"
+            log_event("API Error", error_msg)
+            print(f"ERROR: {error_msg}")
+            return response_data
+        
+        # Debug: Print the structure of the response
+        if "result" in response_data:
+            result_keys = list(response_data["result"].keys())
+            print(f"Response contains result with keys: {result_keys}")
+            
+            # If trades or ledger exist, show count
+            if "trades" in response_data["result"]:
+                trades_count = len(response_data["result"]["trades"])
+                print(f"Found {trades_count} trades in response")
+                
+            if "ledger" in response_data["result"]:
+                ledger_count = len(response_data["result"]["ledger"])
+                print(f"Found {ledger_count} ledger entries in response")
+        else:
+            print("Response does not contain 'result' key")
+            print(f"Response keys: {list(response_data.keys())}")
+        
+        return response_data
+    except Exception as e:
+        error_msg = f"Exception during Kraken API request: {str(e)}"
+        log_event("API Error", error_msg)
+        print(f"ERROR: {error_msg}")
+        traceback.print_exc()
+        return {"error": [str(e)]}
+
+def get_trades() -> List[Dict]:
+    """Fetch trade data from Kraken API"""
+    try:
+        api_key = CONFIG.get("API_KEY", "")
+        api_secret = CONFIG.get("API_SECRET", "")
+        start_time = int(datetime.strptime(CONFIG.get("start_date", ""), "%Y-%m-%d").timestamp())
+        end_time = int(datetime.strptime(CONFIG.get("end_date", ""), "%Y-%m-%d").timestamp()) + 86400  # Add one day to include end date
+        
+        trades = []
+        offset = 0
+        
+        print("=" * 50)
+        print(f"Fetching trades from {CONFIG.get('start_date')} to {CONFIG.get('end_date')}")
+        print(f"Using timestamps: {start_time} to {end_time}")
+        print(f"API Key (masked): {api_key[:5]}...{api_key[-5:]}")
+        print("-" * 50)
+        
+        # Add a small delay before API requests to prevent nonce errors
+        time.sleep(1)
+        
+        max_retries = 3
+        current_retry = 0
+        
+        while True:
+            current_retry = 0
+            retry_success = False
+            
+            while current_retry < max_retries and not retry_success:
+                try:
+                    # Use the global nonce management
+                    data = {
+                        "nonce": get_safe_nonce(),
+                        "start": start_time,
+                        "end": end_time,
+                        "ofs": offset
+                    }
+                    
+                    print(f"Making Kraken TradesHistory API request with offset {offset}...")
+                    result = kraken_request('/0/private/TradesHistory', data, api_key, api_secret)
+                    
+                    if "error" in result and result["error"]:
+                        error_str = str(result["error"])
+                        
+                        # Handle nonce errors specifically
+                        if "EAPI:Invalid nonce" in error_str:
+                            if current_retry < max_retries - 1:
+                                current_retry += 1
+                                wait_time = 2 * current_retry  # Exponential backoff
+                                print(f"Invalid nonce error. Retrying in {wait_time} seconds (attempt {current_retry}/{max_retries})...")
+                                time.sleep(wait_time)
+                                continue
+                            else:
+                                error_msg = "Maximum retry attempts reached for nonce error. Try running the script again."
+                                print(f"ERROR: {error_msg}")
+                                log_event("API Error", f"Nonce error persists after {max_retries} retries")
+                                raise Exception(error_msg)
+                        else:
+                            # Other API errors
+                            error_msg = f"Error fetching trades: {result['error']}"
+                            print(f"ERROR: {error_msg}")
+                            raise Exception(error_msg)
+                    
+                    # If we made it here, the request was successful
+                    retry_success = True
+                    
+                except Exception as retry_error:
+                    if "Invalid nonce" in str(retry_error) and current_retry < max_retries - 1:
+                        current_retry += 1
+                        wait_time = 2 * current_retry
+                        print(f"Retrying after error: {retry_error} (attempt {current_retry}/{max_retries})")
+                        time.sleep(wait_time)
+                    else:
+                        raise
+            
+            batch = result.get("result", {}).get("trades", {})
+            print(f"Received {len(batch)} trades in this batch")
+            
+            if not batch:
+                print("No more trades found")
+                break
+            
+            for trade_id, trade in batch.items():
+                # Convert to a consistent format
+                trade["refid"] = trade_id
+                trade["time"] = trade["time"]
+                trade["type"] = trade["type"]
+                trade["asset"] = trade["pair"]
+                trade["amount"] = trade["vol"]
+                trade["price"] = trade["price"]
+                trade["fee"] = trade["fee"]
+                
+                asset_name = trade["pair"]
+                trade_type = trade["type"]
+                trade_date = datetime.fromtimestamp(trade["time"], timezone.utc).strftime('%Y-%m-%d')
+                print(f"Trade: {trade_id} - {asset_name} - {trade_type} - {trade_date}")
+                
+                trades.append(trade)
+            
+            if len(batch) < 50:  # Kraken default limit is 50
+                print("Received fewer trades than the limit, ending pagination")
+                break
+            
+            offset += len(batch)
+            print(f"Increasing offset to {offset} for next batch")
+            
+            # Small delay to avoid rate limiting
+            time.sleep(0.5)
+        
+        print(f"Total trades found: {len(trades)}")
+        if not trades:
+            print("WARNING: No trades were found for the specified time period.")
+            print("Please verify your API keys and date range in config.json")
+            print("This will result in empty output files unless you have ledger entries.")
+            print("=" * 50)
+        
+        return trades
+    except Exception as e:
+        log_event("Trade Fetch Error", f"Failed to fetch trades: {str(e)}")
+        print(f"ERROR fetching trades: {e}")
+        traceback.print_exc()
+        print("Please check your network connection and API credentials")
+        return []
+
+def get_ledger() -> List[Dict]:
+    """Fetch ledger entries from Kraken API"""
+    try:
+        api_key = CONFIG.get("API_KEY", "")
+        api_secret = CONFIG.get("API_SECRET", "")
+        start_time = int(datetime.strptime(CONFIG.get("start_date", ""), "%Y-%m-%d").timestamp())
+        end_time = int(datetime.strptime(CONFIG.get("end_date", ""), "%Y-%m-%d").timestamp()) + 86400  # Add one day to include end date
+        
+        ledger_entries = []
+        offset = 0
+        
+        print("=" * 50)
+        print(f"Fetching ledger entries from {CONFIG.get('start_date')} to {CONFIG.get('end_date')}")
+        print(f"Using timestamps: {start_time} to {end_time}")
+        print(f"API Key (masked): {api_key[:5]}...{api_key[-5:]}")
+        print("-" * 50)
+        
+        # Add a small delay before API requests to prevent nonce errors
+        time.sleep(1.5)
+        
+        max_retries = 3
+        current_retry = 0
+        
+        while True:
+            current_retry = 0
+            retry_success = False
+            
+            while current_retry < max_retries and not retry_success:
+                try:
+                    # Use the global nonce management
+                    data = {
+                        "nonce": get_safe_nonce(),
+                        "start": start_time,
+                        "end": end_time,
+                        "ofs": offset,
+                        "type": "all"  # Get all types of ledger entries
+                    }
+                    
+                    print(f"Making Kraken Ledgers API request with offset {offset}...")
+                    result = kraken_request('/0/private/Ledgers', data, api_key, api_secret)
+                    
+                    if "error" in result and result["error"]:
+                        error_str = str(result["error"])
+                        
+                        # Handle nonce errors specifically
+                        if "EAPI:Invalid nonce" in error_str:
+                            if current_retry < max_retries - 1:
+                                current_retry += 1
+                                wait_time = 3 * current_retry  # Longer wait time for ledger
+                                print(f"Invalid nonce error in ledger request. Retrying in {wait_time} seconds (attempt {current_retry}/{max_retries})...")
+                                time.sleep(wait_time)
+                                continue
+                            else:
+                                error_msg = "Maximum retry attempts reached for ledger nonce error. Try running the script again."
+                                print(f"ERROR: {error_msg}")
+                                log_event("API Error", f"Ledger nonce error persists after {max_retries} retries")
+                                raise Exception(error_msg)
+                        else:
+                            # Other API errors
+                            error_msg = f"Error fetching ledger: {result['error']}"
+                            print(f"ERROR: {error_msg}")
+                            raise Exception(error_msg)
+                    
+                    # If we made it here, the request was successful
+                    retry_success = True
+                    
+                except Exception as retry_error:
+                    if "Invalid nonce" in str(retry_error) and current_retry < max_retries - 1:
+                        current_retry += 1
+                        wait_time = 3 * current_retry
+                        print(f"Retrying ledger after error: {retry_error} (attempt {current_retry}/{max_retries})")
+                        time.sleep(wait_time)
+                    else:
+                        raise
+            
+            batch = result.get("result", {}).get("ledger", {})
+            print(f"Received {len(batch)} ledger entries in this batch")
+            
+            if not batch:
+                print("No more ledger entries found")
+                break
+            
+            for entry_id, entry in batch.items():
+                # Convert to a consistent format
+                entry["refid"] = entry_id
+                entry["time"] = entry["time"]
+                entry["type"] = entry["type"]
+                entry["asset"] = entry["asset"]
+                entry["amount"] = entry["amount"]
+                
+                # Add other fields that might be needed
+                ledger_entries.append(entry)
+                
+                asset_name = entry["asset"]
+                entry_type = entry["type"]
+                entry_date = datetime.fromtimestamp(entry["time"], timezone.utc).strftime('%Y-%m-%d')
+                print(f"Ledger: {entry_id} - {asset_name} - {entry_type} - {entry_date}")
+            
+            if len(batch) < 50:  # Kraken default limit is 50
+                print("Received fewer ledger entries than the limit, ending pagination")
+                break
+            
+            offset += len(batch)
+            print(f"Increasing offset to {offset} for next batch")
+            
+            # Small delay to avoid rate limiting
+            time.sleep(0.5)
+        
+        print(f"Total ledger entries found: {len(ledger_entries)}")
+        if not ledger_entries:
+            print("WARNING: No ledger entries were found for the specified time period.")
+            print("Please verify your API keys and date range in config.json")
+            print("This will result in empty output files unless you have trades.")
+            print("=" * 50)
+        
+        return ledger_entries
+    except Exception as e:
+        log_event("Ledger Fetch Error", f"Failed to fetch ledger entries: {str(e)}")
+        print(f"ERROR fetching ledger entries: {e}")
+        traceback.print_exc()
+        print("Please check your network connection and API credentials")
+        return []
+
+# --- Price Functions ---
+def get_market_price(asset: str, timestamp: int) -> float:
+    """Get market price for an asset at a specific timestamp."""
+    
+    # Note: This approach uses the API key already configured
+    api_key = CONFIG.get("API_KEY", "")
+    api_secret = CONFIG.get("API_SECRET", "")
+    
+    # Create timestamp range for specific day
+    day_start = timestamp
+    day_end = timestamp + 86400  # Add one day in seconds
+    
+    try:
+        # Format asset pair correctly (assuming format like BTC/EUR needs to become XXBTZEUR)
+        if "/" in asset:
+            base, quote = asset.split("/")
+            # Kraken uses special formatting for some assets
+            if base == "BTC":
+                base = "XXBT"
+            elif base == "ETH":
+                base = "XETH"
+            # For quote currencies
+            if quote == "EUR":
+                quote = "ZEUR"
+            elif quote == "USD":
+                quote = "ZUSD"
+            pair = base + quote
+        else:
+            pair = asset
+            
+        # Query Kraken for OHLC data using the global nonce management 
+        data = {
+            "nonce": get_safe_nonce(),
+            "pair": pair,
+            "interval": 1440  # Daily data
+        }
+        
+        max_retries = 3
+        current_retry = 0
+        
+        while current_retry < max_retries:
+            try:
+                # Try to get historical price from Kraken
+                result = kraken_request('/0/public/OHLC', data, api_key, api_secret)
+                
+                # Check for nonce errors
+                if "error" in result and result["error"] and "EAPI:Invalid nonce" in str(result["error"]):
+                    current_retry += 1
+                    wait_time = 1 * current_retry
+                    print(f"Invalid nonce error in market price request. Retrying in {wait_time} seconds (attempt {current_retry}/{max_retries})...")
+                    time.sleep(wait_time)
+                    # Update nonce with even higher value
+                    nonce_value = int(time.time() * 1000) + hash(asset) % 10000 + (current_retry * 1000)
+                    data["nonce"] = str(nonce_value)
+                    continue
+                
+                # If no nonce error or other error, break the loop
+                break
+                
+            except Exception as e:
+                if "Invalid nonce" in str(e) and current_retry < max_retries - 1:
+                    current_retry += 1
+                    wait_time = 1 * current_retry
+                    print(f"Retrying market price after error: {e} (attempt {current_retry}/{max_retries})")
+                    time.sleep(wait_time)
+                        # Update nonce with safe value
+                    data["nonce"] = get_safe_nonce()
+                else:
+                    # Log the error but don't crash the program
+                    print(f"Error getting price for {asset}: {str(e)}")
+                    return 1.0
+            
+            # Process the results after successful API call
+            if "result" in result and pair in result["result"]:
+                # Find the closest data point to our timestamp
+                closest_data = None
+                min_diff = float('inf')
+                
+                for candle in result["result"][pair]:
+                    candle_time = candle[0]
+                    diff = abs(candle_time - timestamp)
+                    
+                    if diff < min_diff:
+                        min_diff = diff
+                        closest_data = candle
+                
+                if closest_data:
+                    # Use closing price [4]
+                    return float(closest_data[4])
+            
+            # If we couldn't get price data, log warning and fall back to the price from transaction
+            print(f"Warning: Could not get historical price for {asset} at {datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')}.")
+            print("Using price from transaction data or fallback value of 1.0.")
+            return 1.0
+            
+    except Exception as e:
+        # Error handling
+        print(f"Error in get_market_price for {asset}: {str(e)}")
+        return 1.0  # Fallback value
+
+# --- Tax Category Functions ---
+def determine_tax_category(transaction_type: str, asset: str) -> str:
+    """Determine the tax category based on transaction type and asset."""
+    # Default to private sale
+    if transaction_type.lower() in ["buy", "sell"]:
+        return TAX_CATEGORIES["private_sale"]
+    elif transaction_type.lower() == "mining":
+        return TAX_CATEGORIES["mining"]
+    elif transaction_type.lower() == "staking":
+        return TAX_CATEGORIES["staking"]
+    elif transaction_type.lower() == "lending":
+        return TAX_CATEGORIES["lending"]
+    else:
+        return TAX_CATEGORIES["private_sale"]
+
+# --- FIFO & Tax Processing Functions ---
+def process_for_tax(trades: List[Dict], ledger: List[Dict], tax_year: int) -> List[List]:
+    """Process transaction data for tax reporting using FIFO method."""
+    tax_data = [HEADERS]
+    line_num = 1
+    processed_refids = set()  # To avoid duplicate entries
+    
+    # Debug information
+    log_event("Processing", f"Starting tax processing for year {tax_year}")
+    
+    # Combine trades and ledger for processing
+    all_transactions = trades + ledger
+    
+    if not all_transactions:
+        print("WARNING: No transactions found to process. The output will contain only headers.")
+        print("Make sure your API configuration is correct and you have transactions in the specified year.")
+        return tax_data  # Return just the headers
+    
+    # Sort transactions by timestamp
+    print(f"Sorting {len(all_transactions)} transactions chronologically...")
+    all_transactions.sort(key=lambda x: x.get("time", 0))
+    
+    print(f"Processing transactions for tax year {tax_year}...")
+    transactions_in_year = 0
+    
+    for tx in all_transactions:
+        # Extract transaction data
+        timestamp = tx.get("time", 0)
+        tx_datetime = datetime.fromtimestamp(timestamp, timezone.utc)
+        tx_year = tx_datetime.year
+        
+        # Skip if not in requested year
+        if tx_year != tax_year:
+            continue
+        
+        transactions_in_year += 1
+        
+        # Get basic transaction info
+        refid = tx.get("refid", "")
+        
+        # Skip if already processed
+        if refid in processed_refids:
+            continue
+        
+        # Process by transaction type
+        date_str = tx_datetime.strftime("%Y-%m-%d")
+        row_base = [""] * len(HEADERS)
+        row_base[0] = str(line_num)
+        
+        # Get transaction details
+        trade_data = tx
+        type_ = trade_data.get("type", "")
+        amount = float(trade_data.get("amount", 0))
+        fee = float(trade_data.get("fee", 0))
+        price = float(trade_data.get("price", 0)) if trade_data.get("price") else 1.0
+        
+        # Determine base and quote asset from pair
+        base_asset = trade_data.get("pair", "").split("/")[0] if "/" in trade_data.get("pair", "") else trade_data.get("asset", "")
+        quote_asset = trade_data.get("pair", "").split("/")[1] if "/" in trade_data.get("pair", "") else "EUR"
+        
+        # For simplicity, handle only buy and sell transactions here
+        # Buy trades add to holdings
+        if type_.lower() == "buy":
+            # Add to our holdings for FIFO tracking
+            HOLDINGS.setdefault(base_asset, []).append({
+                "amount": abs(amount),
+                "price_eur": price if quote_asset == "EUR" else get_market_price(base_asset, timestamp),
+                "timestamp": timestamp,
+                "refid": refid,
+                "year": tax_year
+            })
+            
+            row_base[1] = "Kauf"
+            row_base[2] = determine_tax_category("buy", base_asset)
+            row_base[3] = date_str
+            row_base[4] = base_asset
+            row_base[5] = abs(amount)
+            row_base[6] = date_str  # Purchase date
+            row_base[7] = price if quote_asset == "EUR" else get_market_price(base_asset, timestamp)
+            row_base[8] = "N/A"
+            row_base[9] = 0.0
+            row_base[10] = abs(amount) * (price if quote_asset == "EUR" else get_market_price(base_asset, timestamp))  # Cost in EUR
+            row_base[11] = 0.0
+            row_base[12] = fee
+            row_base[13] = 0.0  # No gain/loss for purchases
+            row_base[14] = 0  # No holding period for purchases
+            row_base[15] = "Nein"  # Not taxable
+            row_base[16] = "N/A"  # Not applicable for purchases
+            row_base[17] = f"Kauf von {base_asset}, Ref: {refid}"
+            
+            tax_data.append(row_base)
+            line_num += 1
+            processed_refids.add(refid)
+            
+        # Sell trades - calculate gain or loss using FIFO
+        elif type_.lower() == "sell":
+            # For sell transactions, we need to determine cost basis using FIFO
+            # and calculate the gain or loss
+            
+            sell_amount = abs(amount)
+            sell_price_eur = price if quote_asset == "EUR" else get_market_price(base_asset, timestamp)
+            sell_proceeds = sell_amount * sell_price_eur
+            
+            # Check if we have holdings for this asset
+            if base_asset not in HOLDINGS or not HOLDINGS[base_asset]:
+                row_base[1] = "Verkauf"
+                row_base[2] = determine_tax_category("sell", base_asset)
+                row_base[3] = date_str
+                row_base[4] = base_asset
+                row_base[5] = sell_amount
+                row_base[8] = date_str  # Sale date
+                row_base[9] = sell_price_eur
+                row_base[11] = sell_proceeds
+                row_base[12] = fee
+                row_base[15] = "Unbekannt"  # Cannot determine tax status
+                row_base[16] = "Fehler: Keine Kaufdaten verfügbar"
+                row_base[17] = f"WARNUNG: Keine Kaufdaten für {base_asset} gefunden"
+                
+                tax_data.append(row_base)
+                line_num += 1
+                processed_refids.add(refid)
+                continue
+            
+            # Sort holdings by acquisition date (FIFO)
+            HOLDINGS[base_asset].sort(key=lambda x: x["timestamp"])
+            
+            total_cost = 0.0
+            remaining_to_sell = sell_amount
+            matched_lots = []
+            lots_to_remove = []
+            
+            # Match sales against purchases using FIFO
+            for idx, lot in enumerate(HOLDINGS[base_asset]):
+                if remaining_to_sell <= 0:
+                    break
+                
+                lot_amount = lot["amount"]
+                
+                if lot_amount <= remaining_to_sell:
+                    # Use the entire lot
+                    matched_amount = lot_amount
+                    remaining_to_sell -= lot_amount
+                    lots_to_remove.append(idx)
+                else:
+                    # Use partial lot
+                    matched_amount = remaining_to_sell
+                    HOLDINGS[base_asset][idx]["amount"] -= matched_amount
+                    remaining_to_sell = 0
+                
+                # Calculate cost basis for this portion
+                lot_cost = matched_amount * lot["price_eur"]
+                total_cost += lot_cost
+                
+                # Calculate holding period
+                holding_days = (tx_datetime - datetime.fromtimestamp(lot["timestamp"], timezone.utc)).days
+                
+                # Record the details for tax reporting
+                matched_lots.append({
+                    "amount": matched_amount,
+                    "purchase_date": datetime.fromtimestamp(lot["timestamp"], timezone.utc).strftime("%Y-%m-%d"),
+                    "purchase_price": lot["price_eur"],
+                    "holding_period": holding_days,
+                    "cost_basis": lot_cost,
+                    "refid": lot["refid"]
+                })
+            
+            # Remove fully used lots
+            for idx in sorted(lots_to_remove, reverse=True):
+                del HOLDINGS[base_asset][idx]
+            
+            # Check if sell amount was fully matched
+            if remaining_to_sell > 0:
+                # Not enough holdings found
+                log_event("FIFO Warning", f"Not enough holdings found for {base_asset}, remaining: {remaining_to_sell}")
+            
+            # Calculate gain or loss
+            gain_loss = sell_proceeds - total_cost - fee
+            
+            # Determine if the sale is taxable (any lots held less than 1 year)
+            is_taxable = any(lot["holding_period"] <= HOLDING_PERIOD_DAYS for lot in matched_lots)
+            
+            # Create row for the sale
+            row_base[1] = "Verkauf"
+            row_base[2] = determine_tax_category("sell", base_asset)
+            row_base[3] = date_str
+            row_base[4] = base_asset
+            row_base[5] = sell_amount
+            
+            # Use the earliest purchase date for FIFO
+            earliest_purchase = min([lot["purchase_date"] for lot in matched_lots]) if matched_lots else "Unknown"
+            row_base[6] = earliest_purchase
+            
+            # Average purchase price
+            avg_purchase_price = total_cost / sell_amount if sell_amount > 0 else 0
+            row_base[7] = avg_purchase_price
+            
+            row_base[8] = date_str  # Sale date
+            row_base[9] = sell_price_eur
+            row_base[10] = total_cost
+            row_base[11] = sell_proceeds
+            row_base[12] = fee
+            row_base[13] = gain_loss
+            
+            # Average holding period
+            avg_holding_period = int(sum(lot["holding_period"] for lot in matched_lots) / len(matched_lots)) if matched_lots else 0
+            row_base[14] = avg_holding_period
+            
+            row_base[15] = "Ja" if is_taxable and gain_loss > 0 else "Nein"
+            
+            # Explanation in the notes field
+            if is_taxable:
+                if gain_loss > 0:
+                    row_base[16] = "Haltedauer ≤ 1 Jahr, steuerpflichtig"
+                else:
+                    row_base[16] = "Verlust, mit anderen Gewinnen verrechenbar"
+            else:
+                row_base[16] = "Haltedauer > 1 Jahr, steuerfrei"
+            
+            # FIFO documentation
+            fifo_details = []
+            for i, lot in enumerate(matched_lots):
+                fifo_details.append(
+                    f"Lot {i+1}: {lot['amount']:.8f} {base_asset} gekauft am {lot['purchase_date']} "
+                    f"für {lot['purchase_price']:.2f} €/Stk (Haltedauer: {lot['holding_period']} Tage)"
+                )
+            
+            row_base[17] = " | ".join(fifo_details)
+            
+            tax_data.append(row_base)
+            line_num += 1
+            processed_refids.add(refid)
+    
+    print(f"Found {transactions_in_year} transactions in tax year {tax_year}")
+    print(f"Generated {len(tax_data)-1} tax entries") # -1 for header row
+    
+    if len(tax_data) <= 1:
+        print("WARNING: No tax entries were generated for the specified year.")
+        print("Output files will contain only headers.")
+    
+    return tax_data
+
+# --- Export Functions ---
+def export_detailed_fifo_documentation(tax_year: int) -> str:
+    """
+    Export detailed FIFO calculations to a separate file for tax authority review.
+    Returns the path to the exported file.
+    """
+    output_directory = Path(__file__).parent / "export"
+    output_directory.mkdir(exist_ok=True)
+    
+    output_file = output_directory / f"fifo_nachweis_{tax_year}.txt"
+    
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(f"FIFO Nachweis für Steuerjahr {tax_year}\n")
+        f.write("=" * 80 + "\n\n")
+        
+        f.write("Gemäß BMF-Schreiben zur steuerlichen Behandlung von Kryptowährungen\n")
+        f.write("werden die Coins nach dem FIFO-Prinzip (First In - First Out) behandelt.\n\n")
+        
+        f.write("Übersicht der Coin-Bestände und Verkäufe:\n")
+        f.write("-" * 80 + "\n")
+    
+    log_event("FIFO Documentation", f"Exported detailed FIFO documentation for {tax_year} to {output_file}")
+    return str(output_file)
+
+def export_to_csv(data: List[List], tax_year: int) -> str:
+    """Export data to CSV file."""
+    output_directory = Path(__file__).parent / "export"
+    output_directory.mkdir(exist_ok=True)
+    
+    output_file = output_directory / f"krypto_steuer_{tax_year}.csv"
+    
+    try:
+        with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile, delimiter=";", quotechar='"')
+            for row in data:
+                writer.writerow(row)
+        
+        log_event("CSV Export", f"Data exported successfully to {output_file}")
+        return str(output_file)
+    except Exception as e:
+        log_event("CSV Export Error", f"Failed to export to CSV: {str(e)}")
+        return f"Error exporting to CSV: {str(e)}"
+
+def write_tax_data_to_sheets(data: List[List], tax_year: int) -> str:
+    """Export tax data to Google Sheets."""
+    try:
+        if not CONFIG.get("SHEET_ID"):
+            log_event("Google Sheets", "Google Sheets export skipped - missing SHEET_ID")
+            return "Google Sheets export skipped - missing SHEET_ID"
+        
+        # Look for Google API credentials
+        credentials_file_locations = [
+            CONFIG.get("google_sheets", {}).get("credentials_file"),
+            "mbay-tax-sheet-for-kryptos-7fc01e35fb9a.json",
+            "../mbay-tax-sheet-for-kryptos-7fc01e35fb9a.json",
+            "zz_archive/mbay-tax-sheet-for-kryptos-7fc01e35fb9a.json"
+        ]
+        
+        credentials_path = None
+        for location in credentials_file_locations:
+            if not location:
+                continue
+                
+            path = Path(__file__).parent / location
+            if path.exists():
+                credentials_path = path
+                print(f"Found Google credentials at: {path}")
+                break
+        
+        if not credentials_path:
+            log_event("Google Sheets", "Google Sheets export skipped - credentials file not found")
+            print("WARNING: Google API credentials file not found. Skipping Google Sheets export.")
+            print("Please ensure your credentials file exists and is referenced in config.json")
+            return "Google Sheets export skipped - credentials file not found"
+        
+        credentials = service_account.Credentials.from_service_account_file(
+            str(credentials_path),
+            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        )
+        
+        # Build Google Sheets service
+        service = build("sheets", "v4", credentials=credentials)
+        sheet_id = CONFIG.get("SHEET_ID")
+        
+        # Create a new sheet for the tax year
+        sheet_name = f"Steuer {tax_year}"
+        
+        try:
+            # Check if sheet already exists
+            sheet_metadata = service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+            sheets = sheet_metadata.get('sheets', [])
+            sheet_exists = any(sheet.get("properties", {}).get("title") == sheet_name for sheet in sheets)
+            
+            if not sheet_exists:
+                # Create new sheet
+                request = {
+                    "addSheet": {
+                        "properties": {
+                            "title": sheet_name
+                        }
+                    }
+                }
+                
+                body = {"requests": [request]}
+                service.spreadsheets().batchUpdate(spreadsheetId=sheet_id, body=body).execute()
+                print(f"Created new sheet: {sheet_name}")
+            else:
+                # Clear existing sheet
+                range_name = f"{sheet_name}!A1:Z1000"
+                service.spreadsheets().values().clear(
+                    spreadsheetId=sheet_id,
+                    range=range_name
+                ).execute()
+                print(f"Cleared existing sheet: {sheet_name}")
+            
+            # Prepare the data
+            values = []
+            for row in data:
+                values.append(row)
+            
+            body = {
+                'values': values
+            }
+            
+            # Write data to sheet
+            range_name = f"{sheet_name}!A1:T{len(values)}"
+            service.spreadsheets().values().update(
+                spreadsheetId=sheet_id,
+                range=range_name,
+                valueInputOption='RAW',
+                body=body
+            ).execute()
+            
+            log_event("Google Sheets", f"Successfully exported data to Google Sheets for {tax_year}")
+            return f"Tax data exported to Google Sheets: {sheet_name}"
+            
+        except Exception as e:
+            error_msg = f"Google Sheets API error: {str(e)}"
+            log_event("Google Sheets Error", error_msg)
+            print(f"ERROR: {error_msg}")
+            return f"Failed to export to Google Sheets: {str(e)}"
+    
+    except Exception as e:
+        log_event("Google Sheets Error", f"Failed to export to Google Sheets: {str(e)}")
+        print(f"ERROR exporting to Google Sheets: {e}")
+        traceback.print_exc()
+        return f"Failed to export to Google Sheets: {str(e)}"
+
+# --- Reserved for future extensions ---
+
+# --- Nonce Management ---
+# Store last used nonce to ensure we always use higher values
+LAST_NONCE = 0
+
+def get_safe_nonce() -> str:
+    """Generate a nonce that is guaranteed to be higher than previous ones."""
+    global LAST_NONCE
+    
+    # Get current timestamp in microseconds (higher precision than milliseconds)
+    current_nonce = int(time.time() * 1000000)
+    
+    # Ensure the nonce is higher than any previously used
+    if current_nonce <= LAST_NONCE:
+        current_nonce = LAST_NONCE + 1000  # Add a significant increment
+    
+    # Update the last used nonce
+    LAST_NONCE = current_nonce
+    
+    return str(current_nonce)
+
+# --- Main Program ---
+def main():
+    """Main entry point for the script."""
+    print(f"Crypto Tax Calculator v{VERSION}")
+    print("=" * 80)
+    
+    # Get tax year from command line arguments or use current year
+    current_year = datetime.now().year
+    
+    if len(sys.argv) > 1:
+        try:
+            tax_year = int(sys.argv[1])
+            if tax_year < 2010 or tax_year > current_year:
+                print(f"WARNING: Tax year {tax_year} seems unusual. Please verify.")
+        except ValueError:
+            print(f"ERROR: Invalid tax year '{sys.argv[1]}'. Using current year.")
+            tax_year = current_year
+    else:
+        print(f"No tax year specified. Using previous year ({current_year - 1}).")
+        tax_year = current_year - 1
+    
+    print(f"Processing tax data for {tax_year}")
+    
+    # Load configuration
+    global CONFIG
+    CONFIG = load_config()
+    
+    # Set default date range if not in config
+    if "start_date" not in CONFIG or not CONFIG["start_date"]:
+        CONFIG["start_date"] = f"{tax_year}-01-01"
+    if "end_date" not in CONFIG or not CONFIG["end_date"]:
+        CONFIG["end_date"] = f"{tax_year}-12-31"
+    
+    # Verify configuration
+    if not check_config(CONFIG):
+        print("Configuration is incomplete. Please check config.json.")
+        sys.exit(1)
+    
+    # Fetch data from Kraken API
+    trades = get_trades()
+    ledger = get_ledger()
+    
+    # Process data for tax reporting
+    tax_data = process_for_tax(trades, ledger, tax_year)
+    
+    # Export data in different formats
+    output_files = []
+    
+    # Always export to CSV
+    csv_file = export_to_csv(tax_data, tax_year)
+    output_files.append(csv_file)
+    
+    # Export FIFO documentation
+    fifo_doc = export_detailed_fifo_documentation(tax_year)
+    output_files.append(fifo_doc)
+    
+    # Export to Google Sheets if configured
+    if CONFIG.get("SHEET_ID"):
+        sheets_result = write_tax_data_to_sheets(tax_data, tax_year)
+        output_files.append(sheets_result)
+    
+    # Export log data
+    log_file = Path(__file__).parent / "export" / f"log_{tax_year}.csv"
+    try:
+        log_data = [["Timestamp", "Event", "Details"]] + LOG_DATA
+        with open(log_file, "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile, delimiter=";", quotechar='"')
+            for row in log_data:
+                writer.writerow(row)
+        output_files.append(str(log_file))
+    except Exception as e:
+        print(f"Error exporting log data: {e}")
+    
+    # Print summary
+    print("\nTax calculation completed successfully.")
+    print("Generated files:")
+    for file in output_files:
+        print(f"- {file}")
+    
+    # Calculate tax exemption limit based on year
+    exemption_limit = FREIGRENZE_2024_ONWARDS if tax_year >= 2024 else FREIGRENZE_UNTIL_2023
+    
+    # Calculate total taxable gains and losses
+    taxable_transactions = [row for row in tax_data[1:] if row[15] == "Ja"]
+    total_gains = sum(float(row[13]) for row in taxable_transactions if float(row[13]) > 0)
+    total_losses = sum(float(row[13]) for row in taxable_transactions if float(row[13]) < 0)
+    
+    # Print tax summary
+    if taxable_transactions:
+        print(f"\nTax Summary for {tax_year}:")
+        print(f"Taxable transactions: {len(taxable_transactions)}")
+        print(f"Total taxable gains: {total_gains:.2f} €")
+        print(f"Total losses: {abs(total_losses):.2f} €")
+        print(f"Net taxable amount: {(total_gains + total_losses):.2f} €")
+        
+        # Apply tax exemption limit
+        net_taxable = total_gains + total_losses
+        if net_taxable <= exemption_limit:
+            print(f"Below tax exemption limit of {exemption_limit} € - No taxes due")
+        else:
+            print(f"Above tax exemption limit of {exemption_limit} € - Taxes may be due")
+    else:
+        print(f"\nNo taxable transactions found for {tax_year}.")
+
+# Entry point for script execution
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        print(f"ERROR: {e}")
+        traceback.print_exc()
+        sys.exit(1)

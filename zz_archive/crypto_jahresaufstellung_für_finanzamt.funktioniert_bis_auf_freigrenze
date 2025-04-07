@@ -1,0 +1,383 @@
+#!/usr/bin/env python3
+from googleapiclient.errors import HttpError
+from googleapiclient.discovery import build
+from google.oauth2.service_account import Credentials
+import base64
+import hashlib
+import hmac
+import time
+import requests
+import subprocess
+import sys
+import json
+from pathlib import Path
+from datetime import datetime
+
+# Install required packages
+
+
+def install_packages(packages):
+    subprocess.check_call([sys.executable, "-m", "pip", "install"] + packages)
+
+
+required_packages = ["requests", "google-auth", "google-auth-oauthlib",
+                     "google-auth-httplib2", "google-api-python-client"]
+for package in required_packages:
+    try:
+        __import__(package)
+    except ImportError:
+        print(f"Package '{package}' not found. Installing...")
+        install_packages([package])
+
+
+CONFIG_FILE = Path(__file__).parent / "config.json"
+CREDENTIALS_FILE = Path(__file__).parent / \
+    "mbay-tax-sheet-for-kryptos-7fc01e35fb9a.json"
+
+try:
+    with CONFIG_FILE.open('r') as f:
+        config = json.load(f)
+    API_KEY = config["API_KEY"]
+    API_SECRET = config["API_SECRET"]
+    SHEET_ID = config["SHEET_ID"]
+except FileNotFoundError:
+    raise FileNotFoundError(f"Config file not found at: {CONFIG_FILE}")
+except KeyError as e:
+    raise KeyError(f"Missing required key in config.json: {str(e)}")
+
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+creds = Credentials.from_service_account_file(
+    str(CREDENTIALS_FILE), scopes=SCOPES)
+service = build("sheets", "v4", credentials=creds)
+
+# Global holdings across years
+HOLDINGS = {}
+
+# Log data
+LOG_DATA = [["Timestamp", "Event", "Details"]]
+
+
+def log_event(event, details):
+    LOG_DATA.append([datetime.now().strftime(
+        "%Y-%m-%d %H:%M:%S"), event, details])
+
+
+def kraken_request(endpoint, data=None):
+    url = f"https://api.kraken.com/0/private/{endpoint}"
+    if data is None:
+        data = {}
+    data["nonce"] = str(int(time.time() * 1000))
+    post_data = "&".join([f"{k}={v}" for k, v in data.items()])
+    encoded = (str(data["nonce"]) + post_data).encode()
+    message = f"/0/private/{endpoint}".encode() + \
+        hashlib.sha256(encoded).digest()
+    signature = hmac.new(base64.b64decode(API_SECRET), message, hashlib.sha512)
+    sig = base64.b64encode(signature.digest()).decode()
+    headers = {"API-Key": API_KEY, "API-Sign": sig}
+    response = requests.post(url, headers=headers, data=data)
+    log_event(f"API Call: {endpoint}", f"Status: {
+              response.status_code}, Response: {response.text[:200]}...")
+    if response.status_code != 200 or "error" in response.json() and response.json()["error"]:
+        raise Exception(
+            f"API error: {response.json().get('error', 'Unknown error')}")
+    return response.json()
+
+
+def get_trades():
+    trades = []
+    result = kraken_request("TradesHistory")
+    trades.extend(result["result"]["trades"].values())
+    return trades
+
+
+def get_ledger():
+    ledger = []
+    result = kraken_request("Ledgers")
+    ledger.extend(result["result"]["ledger"].values())
+    return ledger
+
+
+def group_by_year(trades, ledger):
+    trades_by_year = {}
+    ledger_by_year = {}
+    for trade in trades:
+        year = datetime.fromtimestamp(float(trade["time"])).year
+        trades_by_year.setdefault(year, []).append(trade)
+    for entry in ledger:
+        year = datetime.fromtimestamp(float(entry["time"])).year
+        ledger_by_year.setdefault(year, []).append(entry)
+    all_years = set(trades_by_year.keys()).union(ledger_by_year.keys())
+    return {year: (trades_by_year.get(year, []), ledger_by_year.get(year, [])) for year in sorted(all_years)}
+
+
+def process_for_tax(trades, ledger, year):
+    tax_data = [["Line", "Date", "Type", "Asset", "Amount", "Buy Price (EUR)", "Sell Price (EUR)",
+                "Gain/Loss (EUR)", "Fee (EUR)", "Taxable", "Tax Form Field", "Notes", "Formula"]]
+    trades = sorted(trades, key=lambda x: float(x["time"]))
+    ledger = sorted(ledger, key=lambda x: float(x["time"]))
+    summaries = {}
+    total_taxable_gains = 0
+    total_tax_free_gains = 0
+    total_losses = 0
+    line_num = 2
+
+    for trade in trades:
+        timestamp = float(trade["time"])
+        date = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(timestamp))
+        asset = trade["pair"][:3] if trade["pair"].startswith(
+            ("XBT", "ETH")) else trade["pair"][-3:]
+        amount = float(trade["vol"])
+        price_eur = float(trade["price"])
+        fee_eur = float(trade["fee"])
+        notes = f"{trade['ordertxid']} - Retain records for tax audit"
+        summaries.setdefault(
+            asset, {"taxable_gains": 0, "tax_free_gains": 0, "losses": 0})
+
+        if trade["type"] == "buy":
+            HOLDINGS.setdefault(asset, []).append(
+                (amount, price_eur, timestamp))
+            tax_data.append([line_num, date, "Buy", asset, amount,
+                            price_eur, "", "", fee_eur, "No", "N/A", notes, ""])
+            log_event("Buy Recorded", f"{date}, {asset}, Amount: {
+                      amount}, Price: {price_eur}")
+            line_num += 1
+        else:
+            tax_data.append([line_num, date, "Trade", asset, amount,
+                            "", "", "", fee_eur, "No", "N/A", notes, ""])
+            line_num += 1
+
+    i = 0
+    while i < len(ledger):
+        entry = ledger[i]
+        timestamp = float(entry["time"])
+        date = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(timestamp))
+        entry_type = entry["type"].capitalize()
+        asset = entry["asset"]
+        amount = float(entry["amount"])
+        fee_eur = float(entry["fee"])
+        notes = f"{entry['refid']} - Retain records for tax audit"
+        summaries.setdefault(
+            asset, {"taxable_gains": 0, "tax_free_gains": 0, "losses": 0})
+
+        if entry_type == "Spend" and asset not in ("ZEUR", "EUR", "KFEE") and amount < 0 and i > 0:
+            prev_entry = ledger[i - 1]
+            if prev_entry["type"] == "receive" and prev_entry["asset"] == "ZEUR" and abs(float(prev_entry["time"]) - timestamp) < 1:
+                sell_amount = -amount
+                sell_price = float(prev_entry["amount"]) / sell_amount
+                remaining = sell_amount
+                gain_loss = 0
+                buy_price_used = 0
+                formula_parts = []
+                buy_details = []
+
+                log_event("Sell Calculation Start", f"{date}, {asset}, Amount: {
+                          sell_amount}, Sell Price: {sell_price}")
+                if asset in HOLDINGS and HOLDINGS[asset]:
+                    while remaining > 0 and HOLDINGS[asset]:
+                        # FIFO: Take the first buy
+                        buy_amount, buy_price, buy_time = HOLDINGS[asset][0]
+                        sold_amount = min(buy_amount, remaining)
+                        partial_gain_loss = (
+                            sell_price - buy_price) * sold_amount
+                        gain_loss += partial_gain_loss
+                        formula_parts.append(
+                            f"({sell_price} - {buy_price}) * {sold_amount}")
+                        buy_details.append(f"Buy at {time.strftime(
+                            '%Y-%m-%d %H:%M:%S', time.gmtime(buy_time))}: {sold_amount} at {buy_price} EUR")
+                        log_event("FIFO Match", f"Sell {date}, {asset}, Used Buy: {
+                                  buy_details[-1]}, Partial Gain/Loss: {partial_gain_loss}")
+                        remaining -= sold_amount
+                        buy_price_used = buy_price
+                        if buy_amount <= remaining:
+                            HOLDINGS[asset].pop(0)
+                        else:
+                            HOLDINGS[asset][0] = (
+                                buy_amount - sold_amount, buy_price, buy_time)
+                else:
+                    buy_price_used = 0
+                    gain_loss = sell_price * sell_amount
+                    formula_parts.append(f"({sell_price} - 0) * {sell_amount}")
+                    log_event("No Prior Buy", f"Sell {date}, {asset}, Amount: {
+                              sell_amount}, Assumed 0 cost basis, Gain: {gain_loss}")
+
+                formula_text = " + ".join(formula_parts)
+                is_taxable = (timestamp - buy_time) < 365 * 24 * \
+                    3600 if HOLDINGS.get(asset) or buy_details else True
+                tax_field = "SO - Line 7" if is_taxable else "N/A"
+                if gain_loss > 0:
+                    if is_taxable:
+                        summaries[asset]["taxable_gains"] += gain_loss
+                        total_taxable_gains += gain_loss
+                        log_event("Taxable Gain", f"{asset}: {gain_loss}")
+                    else:
+                        summaries[asset]["tax_free_gains"] += gain_loss
+                        total_tax_free_gains += gain_loss
+                        log_event("Tax-Free Gain", f"{asset}: {gain_loss}")
+                else:
+                    summaries[asset]["losses"] += gain_loss
+                    total_losses += gain_loss
+                    log_event("Loss", f"{asset}: {gain_loss}")
+
+                tax_data.append([line_num, date, "Sell", asset, sell_amount, buy_price_used, sell_price,
+                                gain_loss, fee_eur, "Yes" if is_taxable else "No", tax_field, notes, formula_text])
+                log_event("Sell Processed", f"{date}, {asset}, Amount: {
+                          sell_amount}, Gain/Loss: {gain_loss}, Formula: {formula_text}, Taxable: {is_taxable}")
+                line_num += 1
+                i += 1
+                continue
+
+        if entry_type == "Receive" and asset not in ("ZEUR", "EUR", "KFEE") and amount > 0:
+            HOLDINGS.setdefault(asset, []).append((amount, 0, timestamp))
+            log_event("Receive Recorded", f"{date}, {
+                      asset}, Amount: {amount}, Assumed 0 cost basis")
+        tax_data.append([line_num, date, entry_type, asset,
+                        amount, "", "", "", fee_eur, "No", "N/A", notes, ""])
+        line_num += 1
+        i += 1
+
+    tax_data = [tax_data[0]] + \
+        sorted(tax_data[1:], key=lambda x: datetime.strptime(
+            x[1], "%Y-%m-%d %H:%M:%S"))
+
+    freigrenze = 1000
+    freigrenze_note = "Below 1,000€ Freigrenze - Tax-Free" if total_taxable_gains <= freigrenze else "Exceeds 1,000€ Freigrenze - Fully Taxable"
+    log_event("Freigrenze Check", f"Total Taxable Gains: {
+              total_taxable_gains}, Note: {freigrenze_note}")
+
+    summary_start = len(tax_data) + 2
+    summary_rows = [["", "", "", "", "", "", "", "", "", "", "", "", ""]]
+    for asset in summaries:
+        summary_rows.extend([
+            [summary_start, "SUMMARY", f"{asset} Taxable Gains {
+                year}", summaries[asset]["taxable_gains"], "", "", "", "", "", "Yes", "SO - Line 7", "To be reported", ""],
+            [summary_start + 1, "SUMMARY", f"{asset} Tax-Free Gains", summaries[asset]
+                ["tax_free_gains"], "", "", "", "", "", "No", "N/A", "Held > 1 year", ""],
+            [summary_start + 2, "SUMMARY", f"{asset} Losses {year}", summaries[asset]["losses"],
+                "", "", "", "", "", "Yes", "SO - Line 24", "Losses to carry forward", ""]
+        ])
+        summary_start += 3
+
+    summary_rows.extend([
+        ["", "", "", "", "", "", "", "", "", "", "", "", ""],
+        [summary_start, "TOTAL", f"Total Taxable Gains {
+            year}", total_taxable_gains, "", "", "", "", "", "Yes", "SO - Line 7", freigrenze_note, ""],
+        [summary_start + 1, "TOTAL", "Total Tax-Free Gains", total_tax_free_gains,
+            "", "", "", "", "", "No", "N/A", "Held > 1 year", ""],
+        [summary_start + 2, "TOTAL", "Total Losses {year}", total_losses, "",
+            "", "", "", "", "Yes", "SO - Line 24", "Losses to carry forward", ""],
+        [summary_start + 3, "INFO", "Fiscal Year",
+            str(year), "", "", "", "", "", "", "", "German Tax Declaration", ""],
+        [summary_start + 4, "INFO", "Generated", datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+         "", "", "", "", "", "", "", "Report creation date", ""],
+        [summary_start + 5, "INFO", "Method", "FIFO", "", "", "",
+            "", "", "", "", "Per German tax rules (BMF)", ""],
+        [summary_start + 6, "INFO", "Deadline", f"{year + 1}-07-31", "", "",
+            "", "", "", "", "", "Tax return due (or +7 months with advisor)", ""]
+    ])
+
+    tax_data.extend(summary_rows)
+    return tax_data
+
+
+def get_or_create_sheet(spreadsheet_id, sheet_name):
+    spreadsheet = service.spreadsheets().get(
+        spreadsheetId=spreadsheet_id).execute()
+    sheets = spreadsheet.get('sheets', [])
+    sheet_exists = any(sheet['properties']['title'] ==
+                       sheet_name for sheet in sheets)
+
+    if not sheet_exists:
+        request = {"addSheet": {"properties": {"title": sheet_name,
+                                               "gridProperties": {"rowCount": 1000, "columnCount": 20}}}}
+        service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id,
+                                           body={"requests": [request]}).execute()
+        log_event("Sheet Created", sheet_name)
+
+    sheets = service.spreadsheets().get(
+        spreadsheetId=spreadsheet_id).execute().get('sheets', [])
+    sheet_id = next(sheet['properties']['sheetId']
+                    for sheet in sheets if sheet['properties']['title'] == sheet_name)
+    return sheet_name, sheet_id
+
+
+def write_to_sheets(data, year):
+    sheet_name = f"Tax {year}"
+    sheet_name, sheet_id = get_or_create_sheet(SHEET_ID, sheet_name)
+    body = {"values": data}
+    try:
+        service.spreadsheets().values().clear(spreadsheetId=SHEET_ID,
+                                              range=f"{sheet_name}!A:Z").execute()
+        service.spreadsheets().values().update(spreadsheetId=SHEET_ID, range=f"{
+            sheet_name}!A1", valueInputOption="RAW", body=body).execute()
+
+        requests = [
+            {"repeatCell": {"range": {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1}, "cell": {
+                "userEnteredFormat": {"textFormat": {"bold": True}}}, "fields": "userEnteredFormat.textFormat.bold"}},
+            {"autoResizeDimensions": {"dimensions": {"sheetId": sheet_id,
+                                                     "dimension": "COLUMNS", "startIndex": 0, "endIndex": len(data[0])}}},
+            {"addConditionalFormatRule": {"rule": {"ranges": [{"sheetId": sheet_id, "startRowIndex": 1, "endRowIndex": len(data)}], "booleanRule": {"condition": {
+                "type": "TEXT_EQ", "values": [{"userEnteredValue": "Yes"}]}, "format": {"backgroundColor": {"red": 1.0, "green": 0.8, "blue": 0.8}}}}, "index": 0}},
+            {"addConditionalFormatRule": {"rule": {"ranges": [{"sheetId": sheet_id, "startRowIndex": 1, "endRowIndex": len(data)}], "booleanRule": {"condition": {
+                "type": "TEXT_EQ", "values": [{"userEnteredValue": "No"}]}, "format": {"backgroundColor": {"red": 0.8, "green": 1.0, "blue": 0.8}}}}, "index": 1}},
+            {"repeatCell": {"range": {"sheetId": sheet_id, "startRowIndex": len(data) - len(data[-7:]), "endRowIndex": len(data)}, "cell": {
+                "userEnteredFormat": {"backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}}}, "fields": "userEnteredFormat.backgroundColor"}}
+        ]
+        service.spreadsheets().batchUpdate(spreadsheetId=SHEET_ID,
+                                           body={"requests": requests}).execute()
+    except HttpError as e:
+        log_event("Sheet Write Error", f"{sheet_name}: {str(e)}")
+        raise
+
+
+def write_log_sheet():
+    sheet_name = "Log"
+    sheet_name, sheet_id = get_or_create_sheet(SHEET_ID, sheet_name)
+    body = {"values": LOG_DATA}
+    try:
+        service.spreadsheets().values().clear(spreadsheetId=SHEET_ID,
+                                              range=f"{sheet_name}!A:Z").execute()
+        service.spreadsheets().values().update(spreadsheetId=SHEET_ID, range=f"{
+            sheet_name}!A1", valueInputOption="RAW", body=body).execute()
+    except HttpError as e:
+        log_event("Log Write Error", str(e))
+        print(f"Error writing log sheet: {str(e)}")
+
+
+def main():
+    try:
+        log_event("Script Started", "Fetching Kraken data")
+        print("Fetching Kraken trade history...")
+        trades = get_trades()
+        print(f"Retrieved {len(trades)} trades.")
+
+        print("Fetching Kraken ledger data...")
+        ledger = get_ledger()
+        print(f"Retrieved {len(ledger)} ledger entries.")
+
+        data_by_year = group_by_year(trades, ledger)
+
+        for year, (year_trades, year_ledger) in data_by_year.items():
+            print(f"Processing data for German tax declaration with FIFO for {
+                  year} ({len(year_trades)} trades, {len(year_ledger)} ledger entries)...")
+            tax_data = process_for_tax(year_trades, year_ledger, year)
+
+            print(f"Writing to Google Sheets for {year}...")
+            write_to_sheets(tax_data, year)
+            print(f"Tax report written to Google Sheet: https://docs.google.com/spreadsheets/d/{
+                  SHEET_ID}, sheet 'Tax {year}'")
+
+        print("Writing log sheet...")
+        write_log_sheet()
+        print(
+            f"Log written to Google Sheet: https://docs.google.com/spreadsheets/d/{SHEET_ID}, sheet 'Log'")
+
+    except Exception as e:
+        log_event("Error", str(e))
+        write_log_sheet()
+        print(f"Error: {str(e)}")
+        if isinstance(e, PermissionError):
+            print("To fix this, open the credentials file, find the 'client_email', and share the spreadsheet with that email address.")
+
+
+if __name__ == "__main__":
+    main()

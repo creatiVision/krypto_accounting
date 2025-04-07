@@ -1,0 +1,123 @@
+# German Crypto Tax Calculator (Kraken)
+
+This Python application calculates cryptocurrency capital gains and income according to German tax law (§23 EStG and §22 Nr. 3 EStG), specifically using transaction data fetched from the Kraken exchange API.
+
+## Purpose
+
+The goal is to automate the process of generating tax-relevant reports for cryptocurrency activities on Kraken, suitable for inclusion in a German tax declaration. It handles:
+
+*   **Private Sales (§23 EStG):** Calculates gains/losses from selling or spending crypto using the First-In, First-Out (FIFO) method. It correctly applies the 1-year holding period for tax exemption and the relevant `Freigrenze` (€600 until 2023, €1000 from 2024 onwards).
+*   **Other Income (§22 Nr. 3 EStG):** Identifies income from staking, lending, or potentially other reward mechanisms, valuing them at the time of receipt. It considers the separate `Freigrenze` of €256 for this income type.
+*   **Fees:** Accounts for transaction fees, treating fees paid in crypto as taxable disposal events.
+
+## Calculation Logic
+
+1.  **Data Fetching:** Retrieves complete trade history and ledger entries from the Kraken API for the user's account up to the end of the specified tax year.
+2.  **Transaction Standardization:** Converts raw Kraken data into a standardized `Transaction` format, normalizing asset names (e.g., XXBT -> BTC).
+3.  **Type Mapping:** Maps Kraken's transaction types (e.g., `buy`, `sell`, `trade`, `staking`, `withdrawal`) to internal categories (`BUY`, `SELL`, `STAKING_REWARD`, `FEE_PAYMENT`, etc.) defined in `tax_rules.py`.
+4.  **Valuation:** Determines the EUR value of each transaction and associated fee at the time it occurred.
+    *   Uses direct EUR pair data from Kraken if available.
+    *   Otherwise, fetches the historical daily price in EUR from the CoinGecko API for the relevant asset(s).
+    *   **Important:** If a price cannot be determined, an error is logged, and the transaction might be skipped or flagged for manual review in the report.
+5.  **FIFO Processing:**
+    *   Maintains a record of all acquired crypto lots (purchases, rewards) sorted by date (`fifo.py`).
+    *   When a disposal event occurs (sell, spend, fee paid in crypto):
+        *   Matches the disposed amount against the oldest available acquisition lots (FIFO).
+        *   Calculates the cost basis based on the purchase price of the consumed lots.
+        *   Determines the holding period for each consumed portion.
+        *   Calculates the capital gain or loss (Proceeds - Cost Basis - Fees).
+        *   Updates the remaining amounts in the holding lots.
+6.  **Tax Classification:** For each relevant transaction within the target tax year:
+    *   Determines if it falls under §23 EStG (Private Sales) or §22 Nr. 3 EStG (Other Income).
+    *   For §23 disposals, checks if the gain is taxable based on the holding period (>1 year = tax-free).
+7.  **Aggregation:** Sums up total taxable gains and losses under §23, and total income under §22 for the tax year. Compares these totals against the respective `Freigrenze`.
+8.  **Reporting:** Generates output files detailing the calculations and summary.
+
+## Program Workflow (Steps)
+
+The `main.py` script orchestrates the following steps:
+
+1.  **Parse Arguments:** Reads the target `tax_year` from the command line (defaults to the previous year).
+2.  **Load Configuration:** Reads API keys and other settings from environment variables (`.env` file) and optionally `config.json` (`config.py`). Validates essential settings.
+3.  **Fetch Data:** Calls `kraken_api.py` to get all trades and ledger entries up to the end of the `tax_year`.
+4.  **Process Transactions:** Iterates through the fetched data:
+    *   Standardizes transactions (`models.py`).
+    *   Maps types (`tax_rules.py`).
+    *   Gets EUR values (`price_api.py`).
+    *   Adds acquisitions to the FIFO calculator (`fifo.py`).
+    *   Processes disposals using the FIFO calculator (`fifo.py`).
+    *   Generates a `TaxReportEntry` (`models.py`) for each relevant event in the `tax_year`.
+5.  **Aggregate Results:** Calculates the overall gains, losses, and income totals for the year (`main.py`, using `AggregatedTaxSummary` from `models.py`).
+6.  **Generate Reports:** Calls `reporting.py` to create:
+    *   `krypto_steuer_YYYY.csv`: Detailed transaction list for the tax year.
+    *   `fifo_nachweis_YYYY.txt`: Text file documenting the FIFO calculations for disposals.
+    *   `log_YYYY.csv`: Log of script execution events.
+    *   Console output summarizing the results.
+    *   (Optional) Google Sheets export.
+
+## Installation and Setup
+
+1.  **Prerequisites:**
+    *   Python 3.8 or higher recommended.
+    *   `pip` (Python package installer).
+    *   `git` (optional, for cloning).
+
+2.  **Clone Repository (Optional):**
+    ```bash
+    # git clone <repository_url>
+    cd skripts-py/accounting
+    ```
+    (Or navigate to the `skripts-py/accounting` directory if you already have it).
+
+3.  **Create Virtual Environment (Recommended):**
+    ```bash
+    cd skripts-py/accounting
+    python3 -m venv venv
+    source venv/bin/activate  # Linux/macOS
+    # venv\Scripts\activate    # Windows
+    ```
+
+4.  **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+5.  **Configure API Keys:**
+    *   Create a file named `.env` in the `skripts-py/accounting/` directory.
+    *   Add your Kraken API key and secret to this file:
+        ```dotenv
+        KRAKEN_API_KEY=YOUR_KRAKEN_API_KEY_HERE
+        KRAKEN_API_SECRET=YOUR_KRAKEN_API_SECRET_HERE
+        ```
+    *   **Security:** Ensure the `.env` file is *not* committed to version control (add it to `.gitignore` if using Git).
+
+6.  **Configure Google Sheets (Optional):**
+    *   If you want to export to Google Sheets:
+        *   Follow Google Cloud instructions to create a service account and download its JSON credentials file.
+        *   Add the following to your `.env` file:
+            ```dotenv
+            GOOGLE_SHEET_ID=YOUR_TARGET_GOOGLE_SHEET_ID
+            GOOGLE_CREDENTIALS_FILE=path/relative/to/accounting/dir/your_credentials.json
+            ```
+        *   Make sure the service account has edit permissions on the target Google Sheet.
+
+## Usage
+
+Run the main script from within the activated virtual environment, specifying the tax year:
+
+```bash
+# Navigate to the project directory if not already there
+cd skripts-py/accounting
+
+# Run for tax year 2023
+python src/crypto_tax_calculator/main.py 2023
+
+# Run for the previous year (default)
+python src/crypto_tax_calculator/main.py
+```
+
+The output files (`krypto_steuer_YYYY.csv`, `fifo_nachweis_YYYY.txt`, `log_YYYY.csv`) will be generated in the `skripts-py/accounting/export/` directory. A summary will also be printed to the console.
+
+## Disclaimer
+
+This tool is provided for informational purposes only and does not constitute tax advice. Tax laws are complex and subject to change. Always consult with a qualified tax professional for advice specific to your situation. The accuracy of the calculations depends on the completeness and correctness of the data provided by the Kraken API and the CoinGecko API.

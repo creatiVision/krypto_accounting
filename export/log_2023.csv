@@ -1,0 +1,13 @@
+Timestamp;Event;Details
+2025-04-02 21:54:19.238;Start;Crypto Tax Calculator starting for tax year 2023
+2025-04-02 21:54:19.239;API Fetch;Fetching data up to 2023-12-31 23:59:59+00:00
+2025-04-02 21:54:19.567;Processing;Starting transaction processing for tax year 2023...
+2025-04-02 21:54:19.567;Processing;Sorted 39 raw transactions.
+2025-04-02 21:54:19.568;Processing;Standardized 39 transactions and attempted EUR valuation.
+2025-04-02 21:54:19.569;Processing Skip;Skipping tx LXH63E-6FB5E-UIBU5B due to missing EUR value.
+2025-04-02 21:54:19.569;Processing Skip;Skipping tx LTG7BB-IDTLJ-V5H5XO due to missing EUR value.
+2025-04-02 21:54:19.569;Processing Skip;Skipping tx LIBGPF-QNPQG-J3ITFA due to missing EUR value.
+2025-04-02 21:54:19.569;Processing Skip;Skipping tx L6VWSP-7KEAK-K6LRRY due to missing EUR value.
+2025-04-02 21:54:19.569;Processing Skip;Skipping tx LB6CIB-QVOBP-AYDZIH due to missing EUR value.
+2025-04-02 21:54:19.569;Processing;Generated 14 report entries for tax year 2023.
+2025-04-02 21:54:19.569;Aggregation;Aggregated results: Net Sales(§23)=0.00€, Other Income(§22)=0.00€
