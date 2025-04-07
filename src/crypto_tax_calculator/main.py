@@ -9,6 +9,7 @@ from .fifo import FifoCalculator
 from .kraken_cache import get_trades, get_ledger
 from .price_api import get_historical_price_eur
 from .tax_rules import calculate_tax_liability
+from .tx_classifier import is_sale_transaction
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -94,24 +95,24 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
         asset = raw_tx.get("asset", "")
         kraken_type = raw_tx.get("type", "unknown").lower()
 
-        # Filter out non-taxable transactions - only skip EUR transactions and wrapper token conversions
-        # Do NOT skip crypto purchases, sales, or any crypto-related transactions
-
-        # Special case 1: EUR/fiat currency spend/withdrawals are not relevant for crypto tax
-        if is_fiat_currency(asset) and kraken_type.lower() in ["spend", "withdrawal"]:
+        # Identify and process crypto sales (including 'spend' transactions in Kraken ledger)
+        if not is_fiat_currency(asset) and is_sale_transaction(raw_tx):
+            # This is a crypto sale - keep processing
+            log_event("Processing", f"Processing crypto sale transaction: {refid} ({kraken_type} {asset})")
+        # Filter out non-taxable transactions
+        elif is_fiat_currency(asset) and kraken_type.lower() in ["spend", "withdrawal"]:
+            # Special case 1: EUR/fiat currency spend/withdrawals are not relevant for crypto tax
             processed_refids.add(refid)
             log_event("Processing", f"Skipping fiat payment transaction: {refid} ({kraken_type} {asset})")
             continue
-
-        # Special case 2: Skip all EUR transactions that are in the ledger only
-        # (crypto purchases should appear in trades data)
-        if is_fiat_currency(asset):
+        elif is_fiat_currency(asset):
+            # Special case 2: Skip all other EUR/fiat transactions in the ledger only
+            # (crypto purchases should appear in trades data)
             processed_refids.add(refid)
             log_event("Processing", f"Skipping fiat currency transaction: {refid} ({kraken_type} {asset})")
             continue
-
-        # Special case 3: Skip wrapper token conversions (handled separately)
-        if asset.endswith("Z") and asset != "XTZ":
+        elif asset.endswith("Z") and asset != "XTZ":
+            # Special case 3: Skip wrapper token conversions (handled separately)
             processed_refids.add(refid)
             log_event("Processing", f"Skipping wrapper token transaction: {refid} ({kraken_type} {asset})")
             continue
@@ -177,7 +178,8 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
 
     # --- Stage 2: Apply FIFO and generate tax report entries ---
     for tx in standardized_txs:
-        if tx.kraken_type in ['buy', 'sell']:
+        # Include both traditional 'sell' and Kraken ledger 'spend' entries as sales
+        if tx.kraken_type in ['buy', 'sell'] or (tx.kraken_type == 'spend' and not is_fiat_currency(tx.asset)):
             matched_lots_raw = fifo_calc.match_lots(
                 tx.asset,
                 tx.amount,
