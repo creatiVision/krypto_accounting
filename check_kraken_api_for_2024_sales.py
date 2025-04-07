@@ -13,7 +13,8 @@ import base64
 import urllib.parse
 import hashlib
 import sqlite3
-import requests
+import urllib.request
+import urllib.error
 from datetime import datetime
 from pathlib import Path
 import traceback
@@ -61,26 +62,42 @@ def get_kraken_signature(urlpath, data, secret):
     return sigdigest.decode()
 
 def kraken_api_request(endpoint, data, api_key, api_secret):
-    """Make a request to the Kraken API."""
+    """Make a request to the Kraken API using only standard library."""
     api_url = "https://api.kraken.com"
+    url = api_url + endpoint
+    
+    # Prepare headers
     headers = {
         'API-Key': api_key,
-        'API-Sign': get_kraken_signature(endpoint, data, api_secret)
+        'API-Sign': get_kraken_signature(endpoint, data, api_secret),
+        'Content-Type': 'application/x-www-form-urlencoded'
     }
     
+    # Encode data for POST request
+    post_data = urllib.parse.urlencode(data).encode('ascii')
+    
     try:
-        response = requests.post(api_url + endpoint, headers=headers, data=data)
-        response_data = response.json()
+        # Create request
+        req = urllib.request.Request(url, data=post_data, headers=headers, method='POST')
         
-        if response.status_code != 200:
-            simple_log(f"API Error ({response.status_code}): {response.text}")
-            return None
+        # Execute request
+        with urllib.request.urlopen(req) as response:
+            # Read and decode response
+            response_data = response.read().decode('utf-8')
+            # Parse JSON
+            result = json.loads(response_data)
             
-        if 'error' in response_data and response_data['error']:
-            simple_log(f"API Error: {response_data['error']}")
-            return None
-            
-        return response_data['result']
+            if 'error' in result and result['error']:
+                simple_log(f"API Error: {result['error']}")
+                return None
+                
+            return result['result']
+    except urllib.error.HTTPError as e:
+        simple_log(f"API Error ({e.code}): {e.read().decode('utf-8')}")
+        return None
+    except urllib.error.URLError as e:
+        simple_log(f"Connection Error: {str(e.reason)}")
+        return None
     except Exception as e:
         simple_log(f"Request Error: {str(e)}")
         return None
