@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Optional, Dict, List, Any, Tuple
 
 from pycoingecko import CoinGeckoAPI
-from crypto_tax_calculator.kraken_api import get_kraken_ohlc
+from .kraken_api import get_kraken_ohlc
 
 # Import yfinance conditionally to prevent installation errors
 try:
@@ -25,9 +25,8 @@ except ImportError:
     YFINANCE_AVAILABLE = False
     print("[WARNING] yfinance not available. Install it for additional price sources.")
 
-# Placeholder for logging function
-def log_event(event: str, details: str):
-    print(f"[LOG] {event}: {details}")
+# Import logging functions
+from .logging_utils import log_event, log_error, log_warning, log_api_call
 
 # --- Constants ---
 # Define cache directory relative to this file's location
@@ -215,9 +214,9 @@ def get_coingecko_id(kraken_asset: str) -> Optional[str]:
                 # KRAKEN_TO_CG_MAP[kraken_asset.upper()] = coin['id']
                 return coin['id']
     except Exception as e:
-        log_event("CoinGecko API Error", f"Failed to fetch coin list for mapping: {e}")
+            log_error("CoinGecko", "MappingError", f"Failed to fetch coin list for mapping", exception=e)
 
-    log_event("Price API Warning", f"Could not map Kraken asset '{kraken_asset}' to CoinGecko ID.")
+    log_warning("Price API", "AssetMapping", f"Could not map Kraken asset '{kraken_asset}' to CoinGecko ID.")
     return None
 
 
@@ -449,7 +448,17 @@ def get_historical_price_eur(kraken_asset: str, timestamp: int) -> Optional[floa
                 
             log_event("Price API", f"Fallback: Fetching price for {asset_id} ({kraken_asset}) on {date_str} from CoinGecko...")
             # Note: Free CoinGecko API provides daily average price for historical data
-            history = cg.get_coin_history_by_id(id=asset_id, date=date_str, localization='false')
+            start_time = time.time()
+            try:
+                log_api_call("CoinGecko", "get_coin_history_by_id", params={"id": asset_id, "date": date_str})
+                history = cg.get_coin_history_by_id(id=asset_id, date=date_str, localization='false')
+                api_duration = (time.time() - start_time) * 1000  # ms
+                log_api_call("CoinGecko", "get_coin_history_by_id", success=True, duration_ms=api_duration)
+            except Exception as e:
+                api_duration = (time.time() - start_time) * 1000  # ms
+                log_api_call("CoinGecko", "get_coin_history_by_id", success=False, 
+                            error_message=str(e), duration_ms=api_duration)
+                raise
 
             # Extract price in EUR
             price_data = history.get("market_data", {}).get("current_price", {})
