@@ -83,13 +83,17 @@ The `main.py` script orchestrates the following steps:
     ```
 
 5.  **Configure API Keys:**
-    *   Create a file named `.env` in the `skripts-py/accounting/` directory.
-    *   Add your Kraken API key and secret to this file:
+    *   Create a file named `.env` in the `skripts/skripts-py/accounting_kryptos/` directory.
+    *   You can copy the provided template file first:
+        ```bash
+        cp .env.template .env
+        ```
+    *   Then edit the `.env` file to add your Kraken API key and secret:
         ```dotenv
         KRAKEN_API_KEY=YOUR_KRAKEN_API_KEY_HERE
         KRAKEN_API_SECRET=YOUR_KRAKEN_API_SECRET_HERE
         ```
-    *   **Security:** Ensure the `.env` file is *not* committed to version control (add it to `.gitignore` if using Git).
+    *   **Security:** The `.env` file is already included in `.gitignore` to ensure your credentials remain private.
 
 6.  **Configure Google Sheets (Optional):**
     *   If you want to export to Google Sheets:
@@ -103,20 +107,48 @@ The `main.py` script orchestrates the following steps:
 
 ## Usage
 
-Run the main script from within the activated virtual environment, specifying the tax year:
+### Quick Start with Interactive Script
+
+The easiest way to run the application is using the provided `start.sh` script, which offers an interactive, menu-driven interface:
+
+```bash
+# Navigate to the project directory
+cd skripts/skripts-py/accounting_kryptos
+
+# Make sure the script is executable
+chmod +x start.sh
+
+# Run the interactive script
+./start.sh
+```
+
+The script will guide you through:
+1. Choosing between Online mode (using real Kraken API data) or Offline Demo mode (using mock data)
+2. Entering the tax year to analyze
+3. Selecting the export format (CSV, Excel, or JSON)
+4. Choosing the output directory
+5. Enabling/disabling verbose logging
+6. Additional options for mock data (if using Offline Demo mode)
+
+### Manual Execution
+
+Alternatively, you can run the main script directly from within the activated virtual environment:
 
 ```bash
 # Navigate to the project directory if not already there
-cd skripts-py/accounting
+cd skripts/skripts-py/accounting_kryptos
+
+# Activate the virtual environment
+source venv/bin/activate
 
 # Run for tax year 2023
-python src/crypto_tax_calculator/main.py 2023
+python -m src.crypto_tax_calculator.main --tax-year 2023
 
 # Run for the previous year (default)
-python src/crypto_tax_calculator/main.py
+python -m src.crypto_tax_calculator.main
 ```
 
-The output files (`krypto_steuer_YYYY.csv`, `fifo_nachweis_YYYY.txt`, `log_YYYY.csv`) will be generated in the `skripts-py/accounting/export/` directory. A summary will also be printed to the console.
+The output files will be generated in the selected output directory (default: `export/`). A summary will also be printed to the console.
 
 ## Disclaimer
 
