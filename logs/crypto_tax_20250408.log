@@ -273,3 +273,379 @@ Please verify your API keys and date range.
 2025-04-08 22:08:24,960 - crypto_tax - INFO - [Export] Created German format tax report: export/krypto_steuer_2024.csv 
 2025-04-08 22:08:24,961 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
 2025-04-08 22:08:24,961 - crypto_tax - INFO - [Export] Successfully exported tax report in csv format for year 2024 
+2025-04-08 22:20:08,645 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:20:08,645 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:20:08,645 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:20:08,645 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:20:08,645 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:20:08,646 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:20:08,646 - crypto_tax - INFO - [API] [2025-04-08 22:20:08.646] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:20:08,646 - crypto_tax - INFO - [API] [2025-04-08 22:20:08.646] Got token for /0/private/TradesHistory 
+2025-04-08 22:20:08,894 - crypto_tax - INFO - [API] [2025-04-08 22:20:08.894] Received response for /0/private/TradesHistory 
+2025-04-08 22:20:08,895 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744143608646118", "ofs": 0, "start": 1692023149, "end": 1735686000, "trades": "true"}, "response_code": 200, "duration_ms": 248.60143661499023}
+2025-04-08 22:20:08,895 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:20:08,895 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:20:08,895 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:20:08,895 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:20:08,896 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:20:08,896 - crypto_tax - INFO - [Database] Retrieved 53 entries from ledger {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:20:08,896 - crypto_tax - INFO - [Kraken] Retrieved 53 cached ledger entries 
+2025-04-08 22:20:08,896 - crypto_tax - INFO - [Kraken API] Fetching ledger entries {"from": "2024-11-07"}
+2025-04-08 22:20:08,896 - crypto_tax - INFO - [API] [2025-04-08 22:20:08.896] Requesting token for /0/private/Ledgers 
+2025-04-08 22:20:08,896 - crypto_tax - INFO - [API] [2025-04-08 22:20:08.896] Got token for /0/private/Ledgers 
+2025-04-08 22:20:09,066 - crypto_tax - INFO - [API] [2025-04-08 22:20:09.066] Received response for /0/private/Ledgers 
+2025-04-08 22:20:09,066 - crypto_tax - INFO - [API] API call to Kraken - /0/private/Ledgers {"method": "POST", "endpoint": "/0/private/Ledgers", "success": true, "params": {"nonce": "1744143608896370", "ofs": 0, "start": 1730935085, "end": 1735686000, "type": "all"}, "response_code": 200, "duration_ms": 169.83962059020996}
+2025-04-08 22:20:09,066 - crypto_tax - INFO - [Kraken API] No new ledger entries fetched 
+2025-04-08 22:20:09,068 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:20:09,068 - crypto_tax - INFO - [Price] Using cached price for ADA on 19-04-2022: 0.8830839991569519 EUR 
+2025-04-08 22:20:09,068 - crypto_tax - INFO - [Price] Using cached price for SOL on 19-04-2022: 100.58084106445312 EUR 
+2025-04-08 22:20:09,068 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:20:09,069 - crypto_tax - INFO - [Price] Using cached price for ADA on 28-12-2022: 0.23368200659751892 EUR 
+2025-04-08 22:20:09,069 - crypto_tax - INFO - [Price] Using cached price for MATIC on 20-04-2023: 0.9210 EUR 
+2025-04-08 22:20:09,069 - crypto_tax - INFO - [Price] Using cached price for AVAX on 24-04-2023: 16.10 EUR 
+2025-04-08 22:20:09,069 - crypto_tax - INFO - [Price] Using cached price for ARB on 24-04-2023: 1.2577 EUR 
+2025-04-08 22:20:09,069 - crypto_tax - INFO - [Price] Using cached price for APT on 24-04-2023: 9.4119 EUR 
+2025-04-08 22:20:09,069 - crypto_tax - INFO - [Price] Using cached price for XETH on 06-11-2024: 2216.2975932743243 EUR 
+2025-04-08 22:20:09,070 - crypto_tax - INFO - [Price] Using cached price for XETH on 04-01-2024: 2023.3577880859375 EUR 
+2025-04-08 22:20:09,072 - crypto_tax - INFO - [Price] Using cached price for ADA on 10-01-2024: 0.530188 EUR 
+2025-04-08 22:20:09,072 - crypto_tax - INFO - [Price] Using cached price for AVAX on 09-05-2024: 31.37 EUR 
+2025-04-08 22:20:09,073 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:20:09,078 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:20:09,078 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:20:09,078 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:20:09,079 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:20:09,079 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:20:09,079 - crypto_tax - INFO - [API] [2025-04-08 22:20:09.079] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:20:09,079 - crypto_tax - INFO - [API] [2025-04-08 22:20:09.079] Got token for /0/private/TradesHistory 
+2025-04-08 22:20:09,206 - crypto_tax - INFO - [API] [2025-04-08 22:20:09.206] Received response for /0/private/TradesHistory 
+2025-04-08 22:20:09,206 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744143609079306", "ofs": 0, "start": 1692023149, "end": 1716488247, "trades": "true"}, "response_code": 200, "duration_ms": 127.0296573638916}
+2025-04-08 22:20:09,207 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:20:09,207 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:20:09,207 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:20:09,207 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:20:09,208 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:20:09,208 - crypto_tax - INFO - [Database] Retrieved 45 entries from ledger {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:20:09,208 - crypto_tax - INFO - [Kraken] Retrieved 45 cached ledger entries 
+2025-04-08 22:20:09,208 - crypto_tax - INFO - [Kraken] Using cached ledger entries only (cache is up to date) 
+2025-04-08 22:20:09,208 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:20:09,209 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:20:09,209 - crypto_tax - INFO - [Price] Using cached price for XETH on 23-05-2024: 3456.899841048827 EUR 
+2025-04-08 22:20:09,209 - crypto_tax - INFO - [Price] Using cached price for ADA on 23-05-2024: 0.424228 EUR 
+2025-04-08 22:20:09,210 - crypto_tax - INFO - [Price] Using cached price for ARB on 23-05-2024: 1.0688 EUR 
+2025-04-08 22:20:09,217 - crypto_tax - INFO - [Export] Created CSV tax reports in export 
+2025-04-08 22:20:09,224 - crypto_tax - INFO - [Export] Created German format tax report: export/krypto_steuer_2024.csv 
+2025-04-08 22:20:09,224 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
+2025-04-08 22:20:09,224 - crypto_tax - INFO - [Export] Successfully exported tax report in csv format for year 2024 
+2025-04-08 22:21:45,652 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:21:45,653 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:21:45,653 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:21:45,653 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:21:45,653 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:21:45,653 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:21:45,653 - crypto_tax - INFO - [API] [2025-04-08 22:21:45.653] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:21:45,654 - crypto_tax - INFO - [API] [2025-04-08 22:21:45.654] Got token for /0/private/TradesHistory 
+2025-04-08 22:21:45,966 - crypto_tax - INFO - [API] [2025-04-08 22:21:45.966] Received response for /0/private/TradesHistory 
+2025-04-08 22:21:45,966 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744143705653948", "ofs": 0, "start": 1692023149, "end": 1735686000, "trades": "true"}, "response_code": 200, "duration_ms": 312.0269775390625}
+2025-04-08 22:21:45,968 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:21:45,968 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:21:45,968 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:21:45,969 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:21:45,970 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:21:45,970 - crypto_tax - INFO - [Database] Retrieved 53 entries from ledger {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:21:45,973 - crypto_tax - INFO - [Kraken] Retrieved 53 cached ledger entries 
+2025-04-08 22:21:45,974 - crypto_tax - INFO - [Kraken API] Fetching ledger entries {"from": "2024-11-07"}
+2025-04-08 22:21:45,974 - crypto_tax - INFO - [API] [2025-04-08 22:21:45.974] Requesting token for /0/private/Ledgers 
+2025-04-08 22:21:45,974 - crypto_tax - INFO - [API] [2025-04-08 22:21:45.974] Got token for /0/private/Ledgers 
+2025-04-08 22:21:46,088 - crypto_tax - INFO - [API] [2025-04-08 22:21:46.088] Received response for /0/private/Ledgers 
+2025-04-08 22:21:46,089 - crypto_tax - INFO - [API] API call to Kraken - /0/private/Ledgers {"method": "POST", "endpoint": "/0/private/Ledgers", "success": true, "params": {"nonce": "1744143705974521", "ofs": 0, "start": 1730935085, "end": 1735686000, "type": "all"}, "response_code": 200, "duration_ms": 113.5106086730957}
+2025-04-08 22:21:46,090 - crypto_tax - INFO - [Kraken API] No new ledger entries fetched 
+2025-04-08 22:21:46,093 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:21:46,093 - crypto_tax - INFO - [Price] Using cached price for ADA on 19-04-2022: 0.8830839991569519 EUR 
+2025-04-08 22:21:46,093 - crypto_tax - INFO - [Price] Using cached price for SOL on 19-04-2022: 100.58084106445312 EUR 
+2025-04-08 22:21:46,094 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:21:46,094 - crypto_tax - INFO - [Price] Using cached price for ADA on 28-12-2022: 0.23368200659751892 EUR 
+2025-04-08 22:21:46,094 - crypto_tax - INFO - [Price] Using cached price for MATIC on 20-04-2023: 0.9210 EUR 
+2025-04-08 22:21:46,094 - crypto_tax - INFO - [Price] Using cached price for AVAX on 24-04-2023: 16.10 EUR 
+2025-04-08 22:21:46,095 - crypto_tax - INFO - [Price] Using cached price for ARB on 24-04-2023: 1.2577 EUR 
+2025-04-08 22:21:46,095 - crypto_tax - INFO - [Price] Using cached price for APT on 24-04-2023: 9.4119 EUR 
+2025-04-08 22:21:46,095 - crypto_tax - INFO - [Price] Using cached price for XETH on 06-11-2024: 2216.2975932743243 EUR 
+2025-04-08 22:21:46,096 - crypto_tax - INFO - [Price] Using cached price for XETH on 04-01-2024: 2023.3577880859375 EUR 
+2025-04-08 22:21:46,099 - crypto_tax - INFO - [Price] Using cached price for ADA on 10-01-2024: 0.530188 EUR 
+2025-04-08 22:21:46,100 - crypto_tax - INFO - [Price] Using cached price for AVAX on 09-05-2024: 31.37 EUR 
+2025-04-08 22:21:46,100 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:21:46,100 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:21:46,101 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:21:46,102 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:21:46,102 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:21:46,103 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:21:46,103 - crypto_tax - INFO - [API] [2025-04-08 22:21:46.103] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:21:46,104 - crypto_tax - INFO - [API] [2025-04-08 22:21:46.104] Got token for /0/private/TradesHistory 
+2025-04-08 22:21:46,232 - crypto_tax - INFO - [API] [2025-04-08 22:21:46.232] Received response for /0/private/TradesHistory 
+2025-04-08 22:21:46,232 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744143706103915", "ofs": 0, "start": 1692023149, "end": 1716488247, "trades": "true"}, "response_code": 200, "duration_ms": 127.78091430664062}
+2025-04-08 22:21:46,232 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:21:46,232 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:21:46,233 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:21:46,233 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:21:46,233 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:21:46,233 - crypto_tax - INFO - [Database] Retrieved 45 entries from ledger {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:21:46,233 - crypto_tax - INFO - [Kraken] Retrieved 45 cached ledger entries 
+2025-04-08 22:21:46,234 - crypto_tax - INFO - [Kraken] Using cached ledger entries only (cache is up to date) 
+2025-04-08 22:21:46,234 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:21:46,234 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:21:46,234 - crypto_tax - INFO - [Price] Using cached price for XETH on 23-05-2024: 3456.899841048827 EUR 
+2025-04-08 22:21:46,235 - crypto_tax - INFO - [Price] Using cached price for ADA on 23-05-2024: 0.424228 EUR 
+2025-04-08 22:21:46,235 - crypto_tax - INFO - [Price] Using cached price for ARB on 23-05-2024: 1.0688 EUR 
+2025-04-08 22:21:46,243 - crypto_tax - INFO - [Export] Created CSV tax reports in export 
+2025-04-08 22:21:46,250 - crypto_tax - INFO - [Export] Created German format tax report: export/krypto_steuer_2024.csv 
+2025-04-08 22:21:46,250 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
+2025-04-08 22:21:46,251 - crypto_tax - INFO - [Export] Successfully exported tax report in csv format for year 2024 
+2025-04-08 22:23:40,004 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:23:40,004 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:23:40,005 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:23:40,005 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:23:40,005 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:23:40,005 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:23:40,005 - crypto_tax - INFO - [API] [2025-04-08 22:23:40.005] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:23:40,005 - crypto_tax - INFO - [API] [2025-04-08 22:23:40.005] Got token for /0/private/TradesHistory 
+2025-04-08 22:23:40,178 - crypto_tax - INFO - [API] [2025-04-08 22:23:40.178] Received response for /0/private/TradesHistory 
+2025-04-08 22:23:40,178 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744143820005377", "ofs": 0, "start": 1692023149, "end": 1735686000, "trades": "true"}, "response_code": 200, "duration_ms": 172.46580123901367}
+2025-04-08 22:23:40,178 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:23:40,178 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:23:40,178 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:23:40,178 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:23:40,179 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:23:40,179 - crypto_tax - INFO - [Database] Retrieved 53 entries from ledger {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:23:40,179 - crypto_tax - INFO - [Kraken] Retrieved 53 cached ledger entries 
+2025-04-08 22:23:40,179 - crypto_tax - INFO - [Kraken API] Fetching ledger entries {"from": "2024-11-07"}
+2025-04-08 22:23:40,179 - crypto_tax - INFO - [API] [2025-04-08 22:23:40.179] Requesting token for /0/private/Ledgers 
+2025-04-08 22:23:40,179 - crypto_tax - INFO - [API] [2025-04-08 22:23:40.179] Got token for /0/private/Ledgers 
+2025-04-08 22:23:40,300 - crypto_tax - INFO - [API] [2025-04-08 22:23:40.300] Received response for /0/private/Ledgers 
+2025-04-08 22:23:40,300 - crypto_tax - INFO - [API] API call to Kraken - /0/private/Ledgers {"method": "POST", "endpoint": "/0/private/Ledgers", "success": true, "params": {"nonce": "1744143820179479", "ofs": 0, "start": 1730935085, "end": 1735686000, "type": "all"}, "response_code": 200, "duration_ms": 121.04606628417969}
+2025-04-08 22:23:40,301 - crypto_tax - INFO - [Kraken API] No new ledger entries fetched 
+2025-04-08 22:23:40,302 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:23:40,302 - crypto_tax - INFO - [Price] Using cached price for ADA on 19-04-2022: 0.8830839991569519 EUR 
+2025-04-08 22:23:40,303 - crypto_tax - INFO - [Price] Using cached price for SOL on 19-04-2022: 100.58084106445312 EUR 
+2025-04-08 22:23:40,303 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:23:40,303 - crypto_tax - INFO - [Price] Using cached price for ADA on 28-12-2022: 0.23368200659751892 EUR 
+2025-04-08 22:23:40,303 - crypto_tax - INFO - [Price] Using cached price for MATIC on 20-04-2023: 0.9210 EUR 
+2025-04-08 22:23:40,303 - crypto_tax - INFO - [Price] Using cached price for AVAX on 24-04-2023: 16.10 EUR 
+2025-04-08 22:23:40,303 - crypto_tax - INFO - [Price] Using cached price for ARB on 24-04-2023: 1.2577 EUR 
+2025-04-08 22:23:40,303 - crypto_tax - INFO - [Price] Using cached price for APT on 24-04-2023: 9.4119 EUR 
+2025-04-08 22:23:40,304 - crypto_tax - INFO - [Price] Using cached price for XETH on 06-11-2024: 2216.2975932743243 EUR 
+2025-04-08 22:23:40,304 - crypto_tax - INFO - [Price] Using cached price for XETH on 04-01-2024: 2023.3577880859375 EUR 
+2025-04-08 22:23:40,307 - crypto_tax - INFO - [Price] Using cached price for ADA on 10-01-2024: 0.530188 EUR 
+2025-04-08 22:23:40,308 - crypto_tax - INFO - [Price] Using cached price for AVAX on 09-05-2024: 31.37 EUR 
+2025-04-08 22:23:40,308 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:23:40,308 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:23:40,309 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:23:40,309 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:23:40,309 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:23:40,309 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:23:40,309 - crypto_tax - INFO - [API] [2025-04-08 22:23:40.309] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:23:40,309 - crypto_tax - INFO - [API] [2025-04-08 22:23:40.309] Got token for /0/private/TradesHistory 
+2025-04-08 22:23:40,428 - crypto_tax - INFO - [API] [2025-04-08 22:23:40.428] Received response for /0/private/TradesHistory 
+2025-04-08 22:23:40,428 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744143820309300", "ofs": 0, "start": 1692023149, "end": 1716488247, "trades": "true"}, "response_code": 200, "duration_ms": 118.74723434448242}
+2025-04-08 22:23:40,428 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:23:40,428 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:23:40,428 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:23:40,428 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:23:40,429 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:23:40,429 - crypto_tax - INFO - [Database] Retrieved 45 entries from ledger {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:23:40,429 - crypto_tax - INFO - [Kraken] Retrieved 45 cached ledger entries 
+2025-04-08 22:23:40,429 - crypto_tax - INFO - [Kraken] Using cached ledger entries only (cache is up to date) 
+2025-04-08 22:23:40,429 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:23:40,429 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:23:40,430 - crypto_tax - INFO - [Price] Using cached price for XETH on 23-05-2024: 3456.899841048827 EUR 
+2025-04-08 22:23:40,430 - crypto_tax - INFO - [Price] Using cached price for ADA on 23-05-2024: 0.424228 EUR 
+2025-04-08 22:23:40,430 - crypto_tax - INFO - [Price] Using cached price for ARB on 23-05-2024: 1.0688 EUR 
+2025-04-08 22:23:40,431 - crypto_tax - INFO - [Export] Created CSV tax reports in export 
+2025-04-08 22:23:40,432 - crypto_tax - INFO - [Export] Created German format tax report: export/krypto_steuer_2024.csv 
+2025-04-08 22:23:40,432 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
+2025-04-08 22:23:40,432 - crypto_tax - INFO - [Export] Successfully exported tax report in csv format for year 2024 
+2025-04-08 22:24:46,307 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:24:46,307 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:24:46,307 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:24:46,308 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:24:46,308 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:24:46,308 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:24:46,308 - crypto_tax - INFO - [API] [2025-04-08 22:24:46.308] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:24:46,308 - crypto_tax - INFO - [API] [2025-04-08 22:24:46.308] Got token for /0/private/TradesHistory 
+2025-04-08 22:24:46,454 - crypto_tax - INFO - [API] [2025-04-08 22:24:46.454] Received response for /0/private/TradesHistory 
+2025-04-08 22:24:46,455 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744143886308400", "ofs": 0, "start": 1692023149, "end": 1735686000, "trades": "true"}, "response_code": 200, "duration_ms": 146.2266445159912}
+2025-04-08 22:24:46,455 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:24:46,455 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:24:46,455 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:24:46,455 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:24:46,456 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:24:46,456 - crypto_tax - INFO - [Database] Retrieved 53 entries from ledger {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:24:46,456 - crypto_tax - INFO - [Kraken] Retrieved 53 cached ledger entries 
+2025-04-08 22:24:46,456 - crypto_tax - INFO - [Kraken API] Fetching ledger entries {"from": "2024-11-07"}
+2025-04-08 22:24:46,456 - crypto_tax - INFO - [API] [2025-04-08 22:24:46.456] Requesting token for /0/private/Ledgers 
+2025-04-08 22:24:46,456 - crypto_tax - INFO - [API] [2025-04-08 22:24:46.456] Got token for /0/private/Ledgers 
+2025-04-08 22:24:46,580 - crypto_tax - INFO - [API] [2025-04-08 22:24:46.580] Received response for /0/private/Ledgers 
+2025-04-08 22:24:46,581 - crypto_tax - INFO - [API] API call to Kraken - /0/private/Ledgers {"method": "POST", "endpoint": "/0/private/Ledgers", "success": true, "params": {"nonce": "1744143886456303", "ofs": 0, "start": 1730935085, "end": 1735686000, "type": "all"}, "response_code": 200, "duration_ms": 124.43804740905762}
+2025-04-08 22:24:46,581 - crypto_tax - INFO - [Kraken API] No new ledger entries fetched 
+2025-04-08 22:24:46,583 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:24:46,583 - crypto_tax - INFO - [Price] Using cached price for ADA on 19-04-2022: 0.8830839991569519 EUR 
+2025-04-08 22:24:46,583 - crypto_tax - INFO - [Price] Using cached price for SOL on 19-04-2022: 100.58084106445312 EUR 
+2025-04-08 22:24:46,584 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:24:46,584 - crypto_tax - INFO - [Price] Using cached price for ADA on 28-12-2022: 0.23368200659751892 EUR 
+2025-04-08 22:24:46,584 - crypto_tax - INFO - [Price] Using cached price for MATIC on 20-04-2023: 0.9210 EUR 
+2025-04-08 22:24:46,584 - crypto_tax - INFO - [Price] Using cached price for AVAX on 24-04-2023: 16.10 EUR 
+2025-04-08 22:24:46,584 - crypto_tax - INFO - [Price] Using cached price for ARB on 24-04-2023: 1.2577 EUR 
+2025-04-08 22:24:46,584 - crypto_tax - INFO - [Price] Using cached price for APT on 24-04-2023: 9.4119 EUR 
+2025-04-08 22:24:46,584 - crypto_tax - INFO - [Price] Using cached price for XETH on 06-11-2024: 2216.2975932743243 EUR 
+2025-04-08 22:24:46,585 - crypto_tax - INFO - [Price] Using cached price for XETH on 04-01-2024: 2023.3577880859375 EUR 
+2025-04-08 22:24:46,585 - crypto_tax - INFO - [Price] Using cached price for ADA on 10-01-2024: 0.530188 EUR 
+2025-04-08 22:24:46,586 - crypto_tax - INFO - [Price] Using cached price for AVAX on 09-05-2024: 31.37 EUR 
+2025-04-08 22:24:46,586 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:24:46,586 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:24:46,595 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:24:46,595 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:24:46,595 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:24:46,595 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:24:46,595 - crypto_tax - INFO - [API] [2025-04-08 22:24:46.595] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:24:46,595 - crypto_tax - INFO - [API] [2025-04-08 22:24:46.595] Got token for /0/private/TradesHistory 
+2025-04-08 22:24:46,720 - crypto_tax - INFO - [API] [2025-04-08 22:24:46.720] Received response for /0/private/TradesHistory 
+2025-04-08 22:24:46,720 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744143886595430", "ofs": 0, "start": 1692023149, "end": 1716488247, "trades": "true"}, "response_code": 200, "duration_ms": 124.60780143737793}
+2025-04-08 22:24:46,720 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:24:46,720 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:24:46,720 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:24:46,720 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:24:46,721 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:24:46,721 - crypto_tax - INFO - [Database] Retrieved 45 entries from ledger {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:24:46,721 - crypto_tax - INFO - [Kraken] Retrieved 45 cached ledger entries 
+2025-04-08 22:24:46,721 - crypto_tax - INFO - [Kraken] Using cached ledger entries only (cache is up to date) 
+2025-04-08 22:24:46,721 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:24:46,722 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:24:46,722 - crypto_tax - INFO - [Price] Using cached price for XETH on 23-05-2024: 3456.899841048827 EUR 
+2025-04-08 22:24:46,722 - crypto_tax - INFO - [Price] Using cached price for ADA on 23-05-2024: 0.424228 EUR 
+2025-04-08 22:24:46,722 - crypto_tax - INFO - [Price] Using cached price for ARB on 23-05-2024: 1.0688 EUR 
+2025-04-08 22:24:46,724 - crypto_tax - INFO - [Export] Created CSV tax reports in export 
+2025-04-08 22:24:46,726 - crypto_tax - INFO - [Export] Created German format tax report: export/krypto_steuer_2024.csv 
+2025-04-08 22:24:46,727 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
+2025-04-08 22:24:46,727 - crypto_tax - INFO - [Export] Successfully exported tax report in csv format for year 2024 
+2025-04-08 22:29:47,856 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:29:47,856 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:29:47,856 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:29:47,857 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:29:47,857 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:29:47,857 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:29:47,857 - crypto_tax - INFO - [API] [2025-04-08 22:29:47.857] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:29:47,857 - crypto_tax - INFO - [API] [2025-04-08 22:29:47.857] Got token for /0/private/TradesHistory 
+2025-04-08 22:29:48,238 - crypto_tax - INFO - [API] [2025-04-08 22:29:48.238] Received response for /0/private/TradesHistory 
+2025-04-08 22:29:48,238 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744144187857242", "ofs": 0, "start": 1692023149, "end": 1735686000, "trades": "true"}, "response_code": 200, "duration_ms": 380.7651996612549}
+2025-04-08 22:29:48,238 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:29:48,238 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:29:48,238 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:29:48,239 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:29:48,239 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:29:48,239 - crypto_tax - INFO - [Database] Retrieved 53 entries from ledger {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:29:48,239 - crypto_tax - INFO - [Kraken] Retrieved 53 cached ledger entries 
+2025-04-08 22:29:48,239 - crypto_tax - INFO - [Kraken API] Fetching ledger entries {"from": "2024-11-07"}
+2025-04-08 22:29:48,239 - crypto_tax - INFO - [API] [2025-04-08 22:29:48.239] Requesting token for /0/private/Ledgers 
+2025-04-08 22:29:48,239 - crypto_tax - INFO - [API] [2025-04-08 22:29:48.239] Got token for /0/private/Ledgers 
+2025-04-08 22:29:48,375 - crypto_tax - INFO - [API] [2025-04-08 22:29:48.375] Received response for /0/private/Ledgers 
+2025-04-08 22:29:48,375 - crypto_tax - INFO - [API] API call to Kraken - /0/private/Ledgers {"method": "POST", "endpoint": "/0/private/Ledgers", "success": true, "params": {"nonce": "1744144188239769", "ofs": 0, "start": 1730935085, "end": 1735686000, "type": "all"}, "response_code": 200, "duration_ms": 135.74957847595215}
+2025-04-08 22:29:48,376 - crypto_tax - INFO - [Kraken API] No new ledger entries fetched 
+2025-04-08 22:29:48,377 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:29:48,377 - crypto_tax - INFO - [Price] Using cached price for ADA on 19-04-2022: 0.8830839991569519 EUR 
+2025-04-08 22:29:48,378 - crypto_tax - INFO - [Price] Using cached price for SOL on 19-04-2022: 100.58084106445312 EUR 
+2025-04-08 22:29:48,378 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:29:48,378 - crypto_tax - INFO - [Price] Using cached price for ADA on 28-12-2022: 0.23368200659751892 EUR 
+2025-04-08 22:29:48,378 - crypto_tax - INFO - [Price] Using cached price for MATIC on 20-04-2023: 0.9210 EUR 
+2025-04-08 22:29:48,378 - crypto_tax - INFO - [Price] Using cached price for AVAX on 24-04-2023: 16.10 EUR 
+2025-04-08 22:29:48,378 - crypto_tax - INFO - [Price] Using cached price for ARB on 24-04-2023: 1.2577 EUR 
+2025-04-08 22:29:48,379 - crypto_tax - INFO - [Price] Using cached price for APT on 24-04-2023: 9.4119 EUR 
+2025-04-08 22:29:48,379 - crypto_tax - INFO - [Price] Using cached price for XETH on 06-11-2024: 2216.2975932743243 EUR 
+2025-04-08 22:29:48,379 - crypto_tax - INFO - [Price] Using cached price for XETH on 04-01-2024: 2023.3577880859375 EUR 
+2025-04-08 22:29:48,380 - crypto_tax - INFO - [Price] Using cached price for ADA on 10-01-2024: 0.530188 EUR 
+2025-04-08 22:29:48,380 - crypto_tax - INFO - [Price] Using cached price for AVAX on 09-05-2024: 31.37 EUR 
+2025-04-08 22:29:48,380 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:29:48,381 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:29:48,390 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:29:48,391 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:29:48,391 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:29:48,391 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:29:48,391 - crypto_tax - INFO - [API] [2025-04-08 22:29:48.391] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:29:48,391 - crypto_tax - INFO - [API] [2025-04-08 22:29:48.391] Got token for /0/private/TradesHistory 
+2025-04-08 22:29:48,513 - crypto_tax - INFO - [API] [2025-04-08 22:29:48.513] Received response for /0/private/TradesHistory 
+2025-04-08 22:29:48,513 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744144188391677", "ofs": 0, "start": 1692023149, "end": 1716488247, "trades": "true"}, "response_code": 200, "duration_ms": 121.32453918457031}
+2025-04-08 22:29:48,513 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:29:48,514 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:29:48,514 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:29:48,514 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:29:48,515 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:29:48,515 - crypto_tax - INFO - [Database] Retrieved 45 entries from ledger {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:29:48,515 - crypto_tax - INFO - [Kraken] Retrieved 45 cached ledger entries 
+2025-04-08 22:29:48,515 - crypto_tax - INFO - [Kraken] Using cached ledger entries only (cache is up to date) 
+2025-04-08 22:29:48,516 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:29:48,516 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:29:48,517 - crypto_tax - INFO - [Price] Using cached price for XETH on 23-05-2024: 3456.899841048827 EUR 
+2025-04-08 22:29:48,518 - crypto_tax - INFO - [Price] Using cached price for ADA on 23-05-2024: 0.424228 EUR 
+2025-04-08 22:29:48,525 - crypto_tax - INFO - [Price] Using cached price for ARB on 23-05-2024: 1.0688 EUR 
+2025-04-08 22:29:48,537 - crypto_tax - INFO - [Export] Created German format tax report: export/krypto_steuer_2024.csv 
+2025-04-08 22:29:48,537 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
+2025-04-08 22:29:48,537 - crypto_tax - INFO - [Export] Successfully exported tax report in German format for year 2024 
+2025-04-08 22:30:33,652 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:30:33,652 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:30:33,653 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:30:33,653 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:30:33,653 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:30:33,653 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:30:33,653 - crypto_tax - INFO - [API] [2025-04-08 22:30:33.653] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:30:33,653 - crypto_tax - INFO - [API] [2025-04-08 22:30:33.653] Got token for /0/private/TradesHistory 
+2025-04-08 22:30:33,826 - crypto_tax - INFO - [API] [2025-04-08 22:30:33.826] Received response for /0/private/TradesHistory 
+2025-04-08 22:30:33,827 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744144233653509", "ofs": 0, "start": 1692023149, "end": 1735686000, "trades": "true"}, "response_code": 200, "duration_ms": 173.16389083862305}
+2025-04-08 22:30:33,827 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:30:33,827 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:30:33,827 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-04-08 22:30:33,827 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:30:33,828 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:30:33,828 - crypto_tax - INFO - [Database] Retrieved 53 entries from ledger {"start_time": 1577833200, "end_time": 1735686000}
+2025-04-08 22:30:33,828 - crypto_tax - INFO - [Kraken] Retrieved 53 cached ledger entries 
+2025-04-08 22:30:33,828 - crypto_tax - INFO - [Kraken API] Fetching ledger entries {"from": "2024-11-07"}
+2025-04-08 22:30:33,828 - crypto_tax - INFO - [API] [2025-04-08 22:30:33.828] Requesting token for /0/private/Ledgers 
+2025-04-08 22:30:33,828 - crypto_tax - INFO - [API] [2025-04-08 22:30:33.828] Got token for /0/private/Ledgers 
+2025-04-08 22:30:34,041 - crypto_tax - INFO - [API] [2025-04-08 22:30:34.041] Received response for /0/private/Ledgers 
+2025-04-08 22:30:34,041 - crypto_tax - INFO - [API] API call to Kraken - /0/private/Ledgers {"method": "POST", "endpoint": "/0/private/Ledgers", "success": true, "params": {"nonce": "1744144233828281", "ofs": 0, "start": 1730935085, "end": 1735686000, "type": "all"}, "response_code": 200, "duration_ms": 212.5856876373291}
+2025-04-08 22:30:34,041 - crypto_tax - INFO - [Kraken API] No new ledger entries fetched 
+2025-04-08 22:30:34,043 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:30:34,043 - crypto_tax - INFO - [Price] Using cached price for ADA on 19-04-2022: 0.8830839991569519 EUR 
+2025-04-08 22:30:34,043 - crypto_tax - INFO - [Price] Using cached price for SOL on 19-04-2022: 100.58084106445312 EUR 
+2025-04-08 22:30:34,043 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:30:34,043 - crypto_tax - INFO - [Price] Using cached price for ADA on 28-12-2022: 0.23368200659751892 EUR 
+2025-04-08 22:30:34,044 - crypto_tax - INFO - [Price] Using cached price for MATIC on 20-04-2023: 0.9210 EUR 
+2025-04-08 22:30:34,044 - crypto_tax - INFO - [Price] Using cached price for AVAX on 24-04-2023: 16.10 EUR 
+2025-04-08 22:30:34,044 - crypto_tax - INFO - [Price] Using cached price for ARB on 24-04-2023: 1.2577 EUR 
+2025-04-08 22:30:34,044 - crypto_tax - INFO - [Price] Using cached price for APT on 24-04-2023: 9.4119 EUR 
+2025-04-08 22:30:34,044 - crypto_tax - INFO - [Price] Using cached price for XETH on 06-11-2024: 2216.2975932743243 EUR 
+2025-04-08 22:30:34,044 - crypto_tax - INFO - [Price] Using cached price for XETH on 04-01-2024: 2023.3577880859375 EUR 
+2025-04-08 22:30:34,047 - crypto_tax - INFO - [Price] Using cached price for ADA on 10-01-2024: 0.530188 EUR 
+2025-04-08 22:30:34,048 - crypto_tax - INFO - [Price] Using cached price for AVAX on 09-05-2024: 31.37 EUR 
+2025-04-08 22:30:34,048 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:30:34,048 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:30:34,048 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:30:34,049 - crypto_tax - INFO - [Database] Retrieved 5 entries from trades {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:30:34,049 - crypto_tax - INFO - [Kraken] Retrieved 5 cached trades 
+2025-04-08 22:30:34,049 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-04-08 22:30:34,049 - crypto_tax - INFO - [API] [2025-04-08 22:30:34.049] Requesting token for /0/private/TradesHistory 
+2025-04-08 22:30:34,049 - crypto_tax - INFO - [API] [2025-04-08 22:30:34.049] Got token for /0/private/TradesHistory 
+2025-04-08 22:30:34,184 - crypto_tax - INFO - [API] [2025-04-08 22:30:34.184] Received response for /0/private/TradesHistory 
+2025-04-08 22:30:34,185 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744144234049158", "ofs": 0, "start": 1692023149, "end": 1716488247, "trades": "true"}, "response_code": 200, "duration_ms": 135.56408882141113}
+2025-04-08 22:30:34,185 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-08 22:30:34,185 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-08 22:30:34,185 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-04-08 22:30:34,185 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-08 22:30:34,186 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-08 22:30:34,186 - crypto_tax - INFO - [Database] Retrieved 45 entries from ledger {"start_time": 1262300400, "end_time": 1716488247}
+2025-04-08 22:30:34,186 - crypto_tax - INFO - [Kraken] Retrieved 45 cached ledger entries 
+2025-04-08 22:30:34,186 - crypto_tax - INFO - [Kraken] Using cached ledger entries only (cache is up to date) 
+2025-04-08 22:30:34,186 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-04-08 22:30:34,186 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-04-08 22:30:34,187 - crypto_tax - INFO - [Price] Using cached price for XETH on 23-05-2024: 3456.899841048827 EUR 
+2025-04-08 22:30:34,187 - crypto_tax - INFO - [Price] Using cached price for ADA on 23-05-2024: 0.424228 EUR 
+2025-04-08 22:30:34,187 - crypto_tax - INFO - [Price] Using cached price for ARB on 23-05-2024: 1.0688 EUR 
+2025-04-08 22:30:34,189 - crypto_tax - INFO - [Export] Created German format tax report: export_test/krypto_steuer_2024.csv 
+2025-04-08 22:30:34,189 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export_test/fifo_nachweis_2024.txt 
+2025-04-08 22:30:34,189 - crypto_tax - INFO - [Export] Successfully exported tax report in German format for year 2024 

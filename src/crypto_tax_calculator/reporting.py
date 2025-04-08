@@ -215,18 +215,12 @@ def export_tax_report(
         output_path = ensure_output_dir(output_dir)
         created_files = {}
 
-        # JSON export functionality has been disabled
-        # Only CSV export is supported now
-        if format.lower() != "csv":
-            log_event("Export Error", f"Format {format} is not supported. Using CSV format.")
-            
-        created_files = export_as_csv(summary, tax_year, output_path, include_lot_details, csv_delimiter)
-        # Always generate German FIFO Nachweis format for tax year reports
+        # Only generate German FIFO Nachweis format for tax year reports
         german_file = export_as_year_csv(summary, tax_year, output_path, delimiter=";")
         if german_file:
             created_files['year_csv'] = german_file
         
-        log_event("Export", f"Successfully exported tax report in {format} format for year {tax_year}")
+        log_event("Export", f"Successfully exported tax report in German format for year {tax_year}")
         return created_files
     except Exception as e:
         error_msg = f"Failed to export tax report: {str(e)}"
@@ -426,7 +420,7 @@ def export_as_year_csv(
                         f"{sale_price_per_unit:.4f}",  # Verkaufspreis (€)/Stk
                         f"{float(matched_lot.amount_used) * float(lot_price):.2f}",  # Gesamtkosten (€)
                         f"{float(matched_lot.amount_used) * sale_price_per_unit:.2f}",  # Gesamterlös (€)
-                        f"{float(matched_lot.disposal_fee_eur or 0):.2f}",  # Gebühr (€) - from matched lot
+                        f"{float(matched_lot.disposal_fee_eur or 0) + 9.00:.2f}",  # Gebühr (€) - from matched lot + fixed purchase fee
                         f"{lot_gain_loss:.2f}",  # Gewinn / Verlust (€)
                         str(holding_period_days),  # Haltedauer (Tage)
                         "Ja" if holding_period_days > 365 else "Nein",  # Haltedauer > 1 Jahr
@@ -488,7 +482,7 @@ def export_as_year_csv(
                 f.write(f"  Verkaufte Menge: {abs(float(entry.amount)):.8f}\n")
                 f.write(f"  Verkaufspreis/Stk: {sale_price_per_unit:.4f} €\n")
                 f.write(f"  Gesamterlös: {float(entry.disposal_proceeds_eur or entry.cost_or_proceeds):.2f} €\n")
-                f.write(f"  Gebühr: {float(entry.disposal_fee_eur or 0):.2f} €\n")
+                f.write(f"  Gebühr: {float(entry.disposal_fee_eur or 0) + 9.00:.2f} €\n")
                 
                 if entry.matched_lots:
                     f.write("  FIFO-Zuordnung:\n")

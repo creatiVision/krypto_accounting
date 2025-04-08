@@ -465,13 +465,15 @@ def main() -> None:
 
     # Generate and print the aggregated tax summary
     total_tax = Decimal(sum(entry.tax_liability for entry in report_entries))
-    total_pl = Decimal(sum(entry.cost_or_proceeds for entry in report_entries))
     
     # Calculate totals by category
     priv_sale_gains = Decimal(sum(entry.disposal_gain_loss_eur for entry in report_entries 
                                if entry.disposal_gain_loss_eur > 0))
     priv_sale_losses = Decimal(sum(entry.disposal_gain_loss_eur for entry in report_entries 
                                 if entry.disposal_gain_loss_eur < 0))
+    
+    # Calculate total profit/loss correctly
+    total_pl = priv_sale_gains + priv_sale_losses
     
     aggregated_summary = AggregatedTaxSummary(
         total_tax_liability=total_tax,
@@ -500,7 +502,7 @@ def main() -> None:
     
     log_event(f"Summary: Total tax liability for {tax_year}: {aggregated_summary.total_tax_liability} EUR")
     log_event(f"Summary: Total profit/loss for {tax_year}: {aggregated_summary.total_profit_loss} EUR")
-    log_event(f"Export: Tax report exported to: {', '.join(created_files.values())}")
+    log_event(f"Export: Tax report exported to: {created_files.get('year_csv', '')}")
 
 if __name__ == "__main__":
     main()
