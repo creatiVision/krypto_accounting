@@ -318,8 +318,8 @@ def export_as_year_csv(
         with open(year_path, 'w', newline='') as csvfile:
             fieldnames = [
                 'Zeile', 'Typ', 'Steuer-Kategorie', 'Transaktions-Datum', 'Asset', 'Anzahl',
-                'Kaufdatum', 'Kaufpreis (EUR)/Stk', 'Verkaufsdatum', 'Verkaufspreis (EUR)/Stk',
-                'Gesamtkosten (EUR)', 'Gesamterlos (EUR)', 'Gebuehr (EUR)', 'Gewinn / Verlust (EUR)',
+                'Kaufdatum', 'Einkaufspreis (EUR)/Stk', 'Verkaufsdatum', 'Verkaufspreis (EUR)/Stk',
+                'Gesamtkosten (EUR)', 'Verkaufserlös (EUR)', 'Gebühren (EUR)', 'Gewinn / Verlust (EUR)',
                 'Haltedauer (Tage)', 'Haltedauer > 1 Jahr', 'Steuerpflichtig', 'Steuergrund',
                 'FIFO-Details', 'Notizen'
             ]
@@ -415,12 +415,12 @@ def export_as_year_csv(
                         entry.asset,  # Asset
                         str(matched_lot.amount_used),  # Anzahl (using amount from matched lot)
                         lot_date,  # Kaufdatum
-                        f"{lot_price:.4f}",  # Kaufpreis (€)/Stk
+                        f"{lot_price:.4f}",  # Einkaufspreis (€)/Stk
                         transaction_date,  # Verkaufsdatum
                         f"{sale_price_per_unit:.4f}",  # Verkaufspreis (€)/Stk
                         f"{float(matched_lot.amount_used) * float(lot_price):.2f}",  # Gesamtkosten (€)
-                        f"{float(matched_lot.amount_used) * sale_price_per_unit:.2f}",  # Gesamterlös (€)
-                        f"{float(matched_lot.disposal_fee_eur or 0) + 9.00:.2f}",  # Gebühr (€) - from matched lot + fixed purchase fee
+                        f"{float(matched_lot.amount_used) * sale_price_per_unit:.2f}",  # Verkaufserlös (€)
+                        f"{float(matched_lot.disposal_fee_eur or 0):.2f}",  # Gebühren (€) - from matched lot
                         f"{lot_gain_loss:.2f}",  # Gewinn / Verlust (€)
                         str(holding_period_days),  # Haltedauer (Tage)
                         "Ja" if holding_period_days > 365 else "Nein",  # Haltedauer > 1 Jahr
@@ -438,18 +438,39 @@ def export_as_year_csv(
             writer.writerow(["Steuerjahr:", str(tax_year)])
             writer.writerow([])
             
-            writer.writerow(["Private Veräußerungsgeschäfte (§23 EStG):"])
-            writer.writerow(["Gesamtgewinne:", str(summary.total_private_sale_gains)])
-            writer.writerow(["Gesamtverluste:", str(summary.total_private_sale_losses)])
-            writer.writerow(["Nettobetrag (§23):", str(summary.total_private_sale_gains - abs(summary.total_private_sale_losses))])
-            writer.writerow(["Freigrenze (§23):", "1000.00" if tax_year >= 2024 else "600.00"])
-            writer.writerow(["Steuerpflichtig (§23):", "Ja" if summary.private_sales_taxable else "Nein"])
-            writer.writerow([])
+            # Calculate total proceeds, costs, and fees
+            total_proceeds = Decimal(0)
+            total_costs = Decimal(0)
+            total_fees = Decimal(0)
             
-            writer.writerow(["Sonstige Einkünfte (§22 Nr. 3 EStG):"])
-            writer.writerow(["Gesamteinkünfte (z.B. Staking):", str(summary.total_other_income)])
-            writer.writerow(["Freigrenze (§22):", str(summary.freigrenze_other_income)])
-            writer.writerow(["Steuerpflichtig (§22):", "Ja" if summary.other_income_taxable else "Nein"])
+            for entry in summary.tax_report_entries:
+                entry_date = datetime.fromtimestamp(entry.timestamp)
+                if entry_date.year == tax_year:
+                    total_proceeds += entry.disposal_proceeds_eur or Decimal(0)
+                    total_costs += entry.disposal_cost_basis_eur or Decimal(0)
+                    total_fees += entry.disposal_fee_eur or Decimal(0)
+            
+            # Calculate net profit/loss
+            net_amount = total_proceeds - total_costs - total_fees
+            
+            writer.writerow(["Private Veräußerungsgeschäfte (§23 EStG):"])
+            writer.writerow(["Verkaufserlös:", str(total_proceeds)])
+            writer.writerow(["Einkaufskosten:", str(total_costs)])
+            writer.writerow(["Gebühren:", str(total_fees)])
+            if net_amount >= 0:
+                writer.writerow(["Gesamtgewinn (§23):", str(net_amount)])
+            else:
+                writer.writerow(["Gesamtverlust (§23):", str(net_amount)])
+            writer.writerow(["Freigrenze (§23):", "1000.00" if tax_year >= 2023 else "600.00"])
+            writer.writerow(["Steuerpflichtig (§23):", "Ja" if summary.private_sales_taxable else "Nein"])
+            # Only include the "Sonstige Einkünfte" section if there's actually some other income
+            if summary.total_other_income > Decimal(0):
+                writer.writerow([])
+                
+                writer.writerow(["Sonstige Einkünfte (§22 Nr. 3 EStG):"])
+                writer.writerow(["Gesamteinkünfte (z.B. Staking):", str(summary.total_other_income)])
+                writer.writerow(["Freigrenze (§22):", str(summary.freigrenze_other_income)])
+                writer.writerow(["Steuerpflichtig (§22):", "Ja" if summary.other_income_taxable else "Nein"])
         
         # Also create a "fifo_nachweis_{tax_year}.txt" file in plain text format 
         # with the FIFO Nachweis information
@@ -482,14 +503,14 @@ def export_as_year_csv(
                 f.write(f"  Verkaufte Menge: {abs(float(entry.amount)):.8f}\n")
                 f.write(f"  Verkaufspreis/Stk: {sale_price_per_unit:.4f} €\n")
                 f.write(f"  Gesamterlös: {float(entry.disposal_proceeds_eur or entry.cost_or_proceeds):.2f} €\n")
-                f.write(f"  Gebühr: {float(entry.disposal_fee_eur or 0) + 9.00:.2f} €\n")
+                f.write(f"  Gebühren: {float(entry.disposal_fee_eur or 0):.2f} €\n")
                 
                 if entry.matched_lots:
                     f.write("  FIFO-Zuordnung:\n")
                     for j, lot in enumerate(entry.matched_lots, 1):
                         purchase_date = lot.original_lot_purchase_date.strftime("%Y-%m-%d")
-                        f.write(f"    - Lot {j}: Kauf von {float(lot.amount_used):.8f} {entry.asset} am {purchase_date} @ {float(lot.original_lot_purchase_price_eur):.4f} €/{entry.asset}, Haltedauer: {lot.holding_period_days} Tage\n")
-                        f.write(f"      Gesamtkosten: {float(lot.cost_basis_eur):.2f} €, Verkauf von {float(lot.amount_used):.8f} {entry.asset} am {transaction_date} @ {sale_price_per_unit:.4f} €/{entry.asset}, Gesamterlös: {float(lot.amount_used) * sale_price_per_unit:.2f} €, ")
+                        f.write(f"    - Lot {j}: Kauf von {float(lot.amount_used):.8f} {entry.asset} am {purchase_date} @ Einkaufspreis: {float(lot.original_lot_purchase_price_eur):.4f} €/{entry.asset}, Haltedauer: {lot.holding_period_days} Tage\n")
+                        f.write(f"      Gesamtkosten: {float(lot.cost_basis_eur):.2f} €, Verkauf von {float(lot.amount_used):.8f} {entry.asset} am {transaction_date} @ Verkaufspreis: {sale_price_per_unit:.4f} €/{entry.asset}, Verkaufserlös: {float(lot.amount_used) * sale_price_per_unit:.2f} €, ")
                         gain_loss = (sale_price_per_unit - float(lot.original_lot_purchase_price_eur)) * float(lot.amount_used)
                         if gain_loss >= 0:
                             f.write(f"Gewinn: +{gain_loss:.2f} €\n")
@@ -521,20 +542,40 @@ def export_as_year_csv(
             
             f.write(f"Steuerjahr: {tax_year}\n\n")
             
+            # Calculate total proceeds, costs, and fees
+            total_proceeds = Decimal(0)
+            total_costs = Decimal(0)
+            total_fees = Decimal(0)
+            
+            for entry in summary.tax_report_entries:
+                entry_date = datetime.fromtimestamp(entry.timestamp)
+                if entry_date.year == tax_year:
+                    total_proceeds += entry.disposal_proceeds_eur or Decimal(0)
+                    total_costs += entry.disposal_cost_basis_eur or Decimal(0)
+                    total_fees += entry.disposal_fee_eur or Decimal(0)
+            
+            # Calculate net profit/loss
+            net_amount = float(total_proceeds) - float(total_costs) - float(total_fees)
+            
             f.write("Private Veräußerungsgeschäfte (§23 EStG):\n")
-            f.write(f"  Gesamtgewinne: {float(summary.total_private_sale_gains):.2f} €\n")
-            f.write(f"  Gesamtverluste: {float(summary.total_private_sale_losses):.2f} €\n")
-            net_amount = float(summary.total_private_sale_gains) - abs(float(summary.total_private_sale_losses))
-            f.write(f"  Nettobetrag (§23): {net_amount:.2f} €\n")
-            f.write(f"  Freigrenze (§23): {float(summary.freigrenze_private_sales):.2f} €\n")
+            f.write(f"  Verkaufserlös: {float(total_proceeds):.2f} €\n")
+            f.write(f"  Einkaufskosten: {float(total_costs):.2f} €\n")
+            f.write(f"  Gebühren: {float(total_fees):.2f} €\n")
+            if net_amount >= 0:
+                f.write(f"  Gesamtgewinn (§23): {net_amount:.2f} €\n")
+            else:
+                f.write(f"  Gesamtverlust (§23): {net_amount:.2f} €\n")
+            f.write(f"  Freigrenze (§23): {1000.00 if tax_year >= 2023 else 600.00:.2f} €\n")
             is_taxable_23 = "Ja" if summary.private_sales_taxable else "Nein"
             f.write(f"  Steuerpflichtig (§23): {is_taxable_23}\n\n")
             
-            f.write("Sonstige Einkünfte (§22 Nr. 3 EStG):\n")
-            f.write(f"  Gesamteinkünfte (z.B. Staking): {float(summary.total_other_income):.2f} €\n")
-            f.write(f"  Freigrenze (§22): {float(summary.freigrenze_other_income):.2f} €\n")
-            is_taxable_22 = "Ja" if summary.other_income_taxable else "Nein"
-            f.write(f"  Steuerpflichtig (§22): {is_taxable_22}\n")
+            # Only include the "Sonstige Einkünfte" section if there's actually some other income
+            if summary.total_other_income > Decimal(0):
+                f.write("Sonstige Einkünfte (§22 Nr. 3 EStG):\n")
+                f.write(f"  Gesamteinkünfte (z.B. Staking): {float(summary.total_other_income):.2f} €\n")
+                f.write(f"  Freigrenze (§22): {float(summary.freigrenze_other_income):.2f} €\n")
+                is_taxable_22 = "Ja" if summary.other_income_taxable else "Nein"
+                f.write(f"  Steuerpflichtig (§22): {is_taxable_22}\n")
         
         log_event("Export", f"Created German format tax report: {year_path}")
         log_event("Export", f"Created FIFO Nachweis text report: {fifo_txt_path}")
