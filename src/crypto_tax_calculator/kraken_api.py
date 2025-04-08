@@ -171,10 +171,17 @@ def kraken_request(uri_path: str, data: Dict[str, Any], api_key: str, api_sec: s
         traceback.print_exc()
         return {"error": [str(e)]}
 
-def fetch_kraken_data(endpoint: str, params: Dict[str, Any], api_key: str, api_secret: str) -> List[Dict[str, Any]]:
+def fetch_kraken_data(endpoint: str, params: Dict[str, Any], api_key: str, api_secret: str, is_recovery_call: bool = False) -> List[Dict[str, Any]]:
     """
     Fetches paginated data (trades or ledger) from Kraken.
     Handles nonce errors and retries.
+    
+    Args:
+        endpoint: The API endpoint to call
+        params: Parameters for the API call
+        api_key: Kraken API key
+        api_secret: Kraken API secret
+        is_recovery_call: Whether this is a recovery call during FIFO error handling
     """
     all_data = []
     offset = 0
@@ -182,7 +189,8 @@ def fetch_kraken_data(endpoint: str, params: Dict[str, Any], api_key: str, api_s
     data_key = "trades" if endpoint == '/0/private/TradesHistory' else "ledger"
     result_key = "trades" if endpoint == '/0/private/TradesHistory' else "ledger" # Key within result dict
 
-    print(f"Fetching {data_key} from Kraken...")
+    if not is_recovery_call:
+        print(f"Fetching {data_key} from Kraken...")
 
     while True:
         current_retry = 0
@@ -275,11 +283,12 @@ def fetch_kraken_data(endpoint: str, params: Dict[str, Any], api_key: str, api_s
         jitter = random.uniform(0.3, 0.7)  # 30-70% variation
         time.sleep(jitter)  # Variable delay between pages
 
-    print(f"Total {data_key} found: {len(all_data)}")
-    if not all_data:
-         print(f"WARNING: No {data_key} were found for the specified parameters.")
-         print("Please verify your API keys and date range.")
-    print("-" * 30)
+    if not is_recovery_call:
+        print(f"Total {data_key} found: {len(all_data)}")
+        if not all_data:
+            print(f"WARNING: No {data_key} were found for the specified parameters.")
+            print("Please verify your API keys and date range.")
+        print("-" * 30)
     return all_data
 
 def get_trades(api_key: str, api_secret: str, start_time: int, end_time: int) -> List[Dict[str, Any]]:

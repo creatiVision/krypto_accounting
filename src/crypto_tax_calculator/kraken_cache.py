@@ -173,7 +173,7 @@ def save_entries(table: str, entries: List[Dict[str, Any]]) -> int:
         
     return success_count
 
-def get_trades(api_key: str, api_secret: str, start_time: int, end_time: int) -> List[Dict[str, Any]]:
+def get_trades(api_key: str, api_secret: str, start_time: int, end_time: int, is_recovery_call: bool = False) -> List[Dict[str, Any]]:
     """
     Get trade history from cache and/or Kraken API.
     Combines cached entries with newly fetched data.
@@ -183,6 +183,7 @@ def get_trades(api_key: str, api_secret: str, start_time: int, end_time: int) ->
         api_secret: Kraken API secret
         start_time: Start timestamp (Unix time)
         end_time: End timestamp (Unix time)
+        is_recovery_call: Whether this is a recovery call during FIFO error handling
         
     Returns:
         List of trade entries
@@ -213,7 +214,7 @@ def get_trades(api_key: str, api_secret: str, start_time: int, end_time: int) ->
                 log_event("Kraken API", "Fetching trades",
                          details={"from": datetime.fromtimestamp(fetch_start).strftime("%Y-%m-%d")})
                          
-                fetched = api_get_trades(api_key, api_secret, fetch_start, end_time)
+                fetched = api_get_trades(api_key, api_secret, fetch_start, end_time, is_recovery_call)
                 log_event("Kraken API", f"Fetched {len(fetched)} new trades")
                 
                 # Save new data to cache
@@ -243,7 +244,7 @@ def get_trades(api_key: str, api_secret: str, start_time: int, end_time: int) ->
         # Return empty list as fallback
         return []
 
-def get_ledger(api_key: str, api_secret: str, start_time: int, end_time: int) -> List[Dict[str, Any]]:
+def get_ledger(api_key: str, api_secret: str, start_time: int, end_time: int, is_recovery_call: bool = False) -> List[Dict[str, Any]]:
     """
     Get ledger history from cache and/or Kraken API.
     Combines cached entries with newly fetched data.
@@ -253,6 +254,7 @@ def get_ledger(api_key: str, api_secret: str, start_time: int, end_time: int) ->
         api_secret: Kraken API secret
         start_time: Start timestamp (Unix time)
         end_time: End timestamp (Unix time)
+        is_recovery_call: Whether this is a recovery call during FIFO error handling
         
     Returns:
         List of ledger entries
@@ -283,7 +285,7 @@ def get_ledger(api_key: str, api_secret: str, start_time: int, end_time: int) ->
                 log_event("Kraken API", "Fetching ledger entries",
                          details={"from": datetime.fromtimestamp(fetch_start).strftime("%Y-%m-%d")})
                          
-                fetched = api_get_ledger(api_key, api_secret, fetch_start, end_time)
+                fetched = api_get_ledger(api_key, api_secret, fetch_start, end_time, is_recovery_call)
                 if fetched:
                     log_event("Kraken API", f"Fetched {len(fetched)} new ledger entries")
                     

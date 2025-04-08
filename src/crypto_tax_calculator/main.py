@@ -220,11 +220,11 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
                 if api_key and api_secret:
                     # Fetch all trades for this asset
                     log_event(f"Fetching all trades for {tx.asset} from 2010-01-01")
-                    additional_trades = get_trades(api_key, api_secret, earliest_date, tx.timestamp)
+                    additional_trades = get_trades(api_key, api_secret, earliest_date, tx.timestamp, is_recovery_call=True)
                     
                     # Fetch all ledger entries for this asset
                     log_event(f"Fetching all ledger entries for {tx.asset} from 2010-01-01")
-                    additional_ledger = get_ledger(api_key, api_secret, earliest_date, tx.timestamp)
+                    additional_ledger = get_ledger(api_key, api_secret, earliest_date, tx.timestamp, is_recovery_call=True)
                     
                     # Process additional data
                     additional_txs = []
