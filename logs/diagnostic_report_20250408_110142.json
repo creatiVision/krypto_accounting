@@ -1,0 +1,154 @@
+{
+  "api_test": {
+    "success": 0,
+    "failure": 0,
+    "assets": {},
+    "error": "Price API dependencies not available"
+  },
+  "database": {
+    "status": "success",
+    "tables": {
+      "trades": {
+        "row_count": 8,
+        "columns": [
+          {
+            "name": "refid",
+            "type": "TEXT"
+          },
+          {
+            "name": "data_json",
+            "type": "TEXT"
+          },
+          {
+            "name": "timestamp",
+            "type": "INTEGER"
+          }
+        ],
+        "has_data": true
+      },
+      "ledger": {
+        "row_count": 40,
+        "columns": [
+          {
+            "name": "refid",
+            "type": "TEXT"
+          },
+          {
+            "name": "data_json",
+            "type": "TEXT"
+          },
+          {
+            "name": "timestamp",
+            "type": "INTEGER"
+          }
+        ],
+        "has_data": true
+      }
+    },
+    "errors": [],
+    "integrity_check": "ok"
+  },
+  "data_consistency": {
+    "assets": {
+      "ARB": {
+        "file_count": 3,
+        "valid_files": 3,
+        "invalid_files": 0,
+        "price_range": {
+          "min": 0.4011,
+          "max": 1.5153
+        }
+      },
+      "ETH": {
+        "file_count": 6,
+        "valid_files": 6,
+        "invalid_files": 0,
+        "price_range": {
+          "min": 1688.71,
+          "max": 3497.08
+        }
+      },
+      "BTC": {
+        "file_count": 2,
+        "valid_files": 2,
+        "invalid_files": 0,
+        "price_range": {
+          "min": 79613.1,
+          "max": 83020.3
+        }
+      },
+      "ADA": {
+        "file_count": 5,
+        "valid_files": 5,
+        "invalid_files": 0,
+        "price_range": {
+          "min": 0.38041,
+          "max": 0.957234
+        }
+      },
+      "AVAX": {
+        "file_count": 2,
+        "valid_files": 2,
+        "invalid_files": 0,
+        "price_range": {
+          "min": 21.11,
+          "max": 32.38
+        }
+      },
+      "cardano": {
+        "file_count": 1,
+        "valid_files": 1,
+        "invalid_files": 0,
+        "price_range": {
+          "min": 0.4463993053854279,
+          "max": 0.4463993053854279
+        }
+      },
+      "avalanche-2": {
+        "file_count": 1,
+        "valid_files": 1,
+        "invalid_files": 0,
+        "price_range": {
+          "min": 31.69703657066679,
+          "max": 31.69703657066679
+        }
+      },
+      "arbitrum": {
+        "file_count": 1,
+        "valid_files": 1,
+        "invalid_files": 0,
+        "price_range": {
+          "min": 1.05608250645384,
+          "max": 1.05608250645384
+        }
+      },
+      "ethereum": {
+        "file_count": 1,
+        "valid_files": 1,
+        "invalid_files": 0,
+        "price_range": {
+          "min": 3456.899841048827,
+          "max": 3456.899841048827
+        }
+      }
+    },
+    "errors": [],
+    "warnings": []
+  },
+  "timestamp": "2025-04-08T11:01:42.026587",
+  "summary": {
+    "api_tests": {
+      "success": 0,
+      "failure": 0
+    },
+    "database": {
+      "status": "success",
+      "error_count": 0
+    },
+    "data_consistency": {
+      "asset_count": 9,
+      "error_count": 0,
+      "warning_count": 0
+    }
+  }
+}

@@ -260,12 +260,8 @@ def validate_data_consistency(price_cache_dir=PRICE_CACHE_DIR):
                         continue
                     
                     # Extract price information
-                    if 'price' in data:
-                        price = float(data['price'])
-                        min_price = min(min_price, price)
-                        max_price = max(max_price, price)
-                    elif 'EUR' in data:
-                        price = float(data['EUR'])
+                    if 'price_eur' in data:
+                        price = float(data['price_eur'])
                         min_price = min(min_price, price)
                         max_price = max(max_price, price)
                     else:
@@ -293,8 +289,10 @@ def validate_data_consistency(price_cache_dir=PRICE_CACHE_DIR):
             
             results["assets"][asset] = asset_result
             print(f"  - Files: {len(files)}, Valid: {asset_result['valid_files']}, Invalid: {asset_result['invalid_files']}")
-            if 'price_range' in asset_result:
-                print(f"  - Price range: {asset_result['price_range']['min']} to {asset_result['price_range']['max']} EUR")
+            if 'price_range' in asset_result and 'min' in asset_result['price_range'] and 'max' in asset_result['price_range']:
+                print(f"  - Price range: {asset_result['price_range']['min']:.2f} to {asset_result['price_range']['max']:.2f} EUR")
+            else:
+                print("  - Price range: Not available (no valid prices found)")
         
         if not asset_files:
             warning = "No price cache files found"

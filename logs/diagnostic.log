@@ -1,0 +1,22 @@
+2025-04-08 10:48:57,744 - crypto_tax - INFO - [Diagnostic] Diagnostic process started 
+2025-04-08 10:48:57,752 - crypto_tax - ERROR - [Diagnostic] ERROR - DataError: Data consistency check failed: 'min' | Exception: KeyError: 'min' 
+2025-04-08 10:48:57,757 - crypto_tax - ERROR - [Diagnostic] Traceback: Traceback (most recent call last):
+  File "/home/mb/skripts/skripts-py/accounting_kryptos/diagnostic.py", line 297, in validate_data_consistency
+    print(f"  - Price range: {asset_result['price_range']['min']} to {asset_result['price_range']['max']} EUR")
+                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+KeyError: 'min'
+
+2025-04-08 10:48:57,758 - crypto_tax - INFO - [Diagnostic] Diagnostic report generated: logs/diagnostic_report_20250408_104857.json 
+2025-04-08 10:49:46,285 - crypto_tax - INFO - [Diagnostic] Diagnostic process started 
+2025-04-08 10:49:46,286 - crypto_tax - ERROR - [Diagnostic] ERROR - DataError: Data consistency check failed: 'min' | Exception: KeyError: 'min' 
+2025-04-08 10:49:46,287 - crypto_tax - ERROR - [Diagnostic] Traceback: Traceback (most recent call last):
+  File "/home/mb/skripts/skripts-py/accounting_kryptos/diagnostic.py", line 297, in validate_data_consistency
+    print(f"  - Price range: {asset_result['price_range']['min']} to {asset_result['price_range']['max']} EUR")
+                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+KeyError: 'min'
+
+2025-04-08 10:49:46,288 - crypto_tax - INFO - [Diagnostic] Diagnostic report generated: logs/diagnostic_report_20250408_104946.json 
+2025-04-08 10:57:07,820 - crypto_tax - INFO - [Diagnostic] Diagnostic process started 
+2025-04-08 10:57:07,823 - crypto_tax - INFO - [Diagnostic] Diagnostic report generated: logs/diagnostic_report_20250408_105707.json 
+2025-04-08 11:01:42,024 - crypto_tax - INFO - [Diagnostic] Diagnostic process started 
+2025-04-08 11:01:42,027 - crypto_tax - INFO - [Diagnostic] Diagnostic report generated: logs/diagnostic_report_20250408_110142.json 

@@ -1,0 +1,145 @@
+2025-04-08 16:28:25,210 - debug_fix - INFO - Starting debugging and fix process
+2025-04-08 16:28:25,210 - debug_fix - INFO - --- Database Consistency Check ---
+2025-04-08 16:28:25,211 - debug_fix - INFO - Checking database consistency
+2025-04-08 16:28:25,211 - debug_fix - ERROR - Error checking database consistency: 'generator' object does not support the context manager protocol
+2025-04-08 16:28:25,211 - debug_fix - WARNING - Database consistency issues found
+2025-04-08 16:28:25,211 - debug_fix - INFO - Debugging and fix process completed
+2025-04-08 16:30:05,549 - debug_fix - INFO - Starting debugging and fix process
+2025-04-08 16:30:05,549 - debug_fix - INFO - --- Database Consistency Check ---
+2025-04-08 16:30:05,549 - debug_fix - INFO - Checking database consistency
+2025-04-08 16:30:05,550 - debug_fix - INFO - Table 'trades' has 8 rows
+2025-04-08 16:30:05,550 - debug_fix - INFO - Table 'ledger' has 40 rows
+2025-04-08 16:30:05,551 - debug_fix - INFO - Database consistency check passed
+2025-04-08 16:30:05,551 - debug_fix - INFO - Debugging and fix process completed
+2025-04-08 16:30:10,762 - debug_fix - INFO - Starting debugging and fix process
+2025-04-08 16:30:10,763 - debug_fix - INFO - --- FIFO Calculation Check ---
+2025-04-08 16:30:10,763 - debug_fix - INFO - Loading transactions for year 2024
+2025-04-08 16:30:10,763 - debug_fix - INFO - Loaded 0 purchases and 0 sales
+2025-04-08 16:30:10,763 - debug_fix - INFO - Inspecting FIFO errors in transactions
+2025-04-08 16:30:10,763 - debug_fix - INFO - No FIFO issues detected
+2025-04-08 16:30:10,763 - debug_fix - INFO - Debugging and fix process completed
+2025-04-08 16:30:30,019 - debug_fix - INFO - Starting debugging and fix process
+2025-04-08 16:30:30,019 - debug_fix - INFO - --- FIFO Calculation Check ---
+2025-04-08 16:30:30,019 - debug_fix - INFO - Checking 2024 transactions
+2025-04-08 16:30:30,019 - debug_fix - INFO - Loading transactions for year 2024
+2025-04-08 16:30:30,020 - debug_fix - INFO - Loaded 0 purchases and 0 sales
+2025-04-08 16:30:30,020 - debug_fix - INFO - Checking 2023 transactions
+2025-04-08 16:30:30,020 - debug_fix - INFO - Loading transactions for year 2023
+2025-04-08 16:30:30,021 - debug_fix - INFO - Loaded 10 purchases and 5 sales
+2025-04-08 16:30:30,021 - debug_fix - INFO - Inspecting FIFO errors in transactions
+2025-04-08 16:30:30,021 - debug_fix - WARNING - Asset ZEUR has 5 sales but no purchases
+2025-04-08 16:30:30,021 - debug_fix - INFO - Found 1 problematic assets: ZEUR
+2025-04-08 16:30:30,022 - debug_fix - INFO - FIFO issues report written to export/fifo_issues_report.json
+2025-04-08 16:30:30,022 - debug_fix - INFO - Debugging and fix process completed
+2025-04-08 16:30:40,100 - debug_fix - INFO - Starting debugging and fix process
+2025-04-08 16:30:40,101 - debug_fix - INFO - Debugging and fix process completed
+2025-04-08 16:30:44,813 - debug_fix - INFO - Starting debugging and fix process
+2025-04-08 16:30:44,814 - debug_fix - INFO - --- FIFO Calculation Check ---
+2025-04-08 16:30:44,814 - debug_fix - INFO - Checking 2024 transactions
+2025-04-08 16:30:44,814 - debug_fix - INFO - Loading transactions for year 2024
+2025-04-08 16:30:44,815 - debug_fix - INFO - Loaded 0 purchases and 0 sales
+2025-04-08 16:30:44,816 - debug_fix - INFO - Checking 2023 transactions
+2025-04-08 16:30:44,816 - debug_fix - INFO - Loading transactions for year 2023
+2025-04-08 16:30:44,817 - debug_fix - INFO - Loaded 10 purchases and 5 sales
+2025-04-08 16:30:44,817 - debug_fix - INFO - Inspecting FIFO errors in transactions
+2025-04-08 16:30:44,817 - debug_fix - WARNING - Asset ZEUR has 5 sales but no purchases
+2025-04-08 16:30:44,818 - debug_fix - INFO - Found 1 problematic assets: ZEUR
+2025-04-08 16:30:44,818 - debug_fix - INFO - FIFO issues report written to export/fifo_issues_report.json
+2025-04-08 16:30:44,819 - debug_fix - INFO - --- Generating Fix Suggestions ---
+2025-04-08 16:30:44,819 - debug_fix - INFO - Generating fix suggestions for FIFO issues
+2025-04-08 16:30:44,820 - debug_fix - INFO - Generated 0 manual entry suggestions
+2025-04-08 16:30:44,820 - debug_fix - INFO - Fix suggestions written to export/fifo_fix_suggestions.json
+2025-04-08 16:30:44,821 - debug_fix - INFO - Debugging and fix process completed
+2025-04-08 16:31:21,667 - debug_fix - INFO - Starting debugging and fix process
+2025-04-08 16:31:21,667 - debug_fix - INFO - --- FIFO Calculation Check ---
+2025-04-08 16:31:21,668 - debug_fix - INFO - Checking 2024 transactions
+2025-04-08 16:31:21,668 - debug_fix - INFO - Loading transactions for year 2024
+2025-04-08 16:31:21,668 - debug_fix - INFO - Loaded 0 purchases and 0 sales
+2025-04-08 16:31:21,669 - debug_fix - INFO - Checking 2023 transactions
+2025-04-08 16:31:21,669 - debug_fix - INFO - Loading transactions for year 2023
+2025-04-08 16:31:21,670 - debug_fix - INFO - Loaded 10 purchases and 5 sales
+2025-04-08 16:31:21,670 - debug_fix - INFO - Inspecting FIFO errors in transactions
+2025-04-08 16:31:21,670 - debug_fix - WARNING - Asset ZEUR has 5 sales but no purchases
+2025-04-08 16:31:21,670 - debug_fix - INFO - Found 1 problematic assets: ZEUR
+2025-04-08 16:31:21,671 - debug_fix - INFO - FIFO issues report written to export/fifo_issues_report.json
+2025-04-08 16:31:21,671 - debug_fix - INFO - --- Generating Fix Suggestions ---
+2025-04-08 16:31:21,671 - debug_fix - INFO - Generating fix suggestions for FIFO issues
+2025-04-08 16:31:21,671 - debug_fix - INFO - Generated 1 manual entry suggestions
+2025-04-08 16:31:21,672 - debug_fix - INFO - Fix suggestions written to export/fifo_fix_suggestions.json
+2025-04-08 16:31:21,672 - debug_fix - INFO - SQL fix script written to export/add_manual_entries.sql
+2025-04-08 16:31:21,672 - debug_fix - INFO - Debugging and fix process completed
+2025-04-08 16:31:51,202 - debug_fix - INFO - Starting debugging and fix process
+2025-04-08 16:31:51,202 - debug_fix - INFO - --- FIFO Calculation Check ---
+2025-04-08 16:31:51,202 - debug_fix - INFO - Checking 2024 transactions
+2025-04-08 16:31:51,202 - debug_fix - INFO - Loading transactions for year 2024
+2025-04-08 16:31:51,203 - debug_fix - INFO - Loaded 0 purchases and 0 sales
+2025-04-08 16:31:51,203 - debug_fix - INFO - Checking 2023 transactions
+2025-04-08 16:31:51,203 - debug_fix - INFO - Loading transactions for year 2023
+2025-04-08 16:31:51,204 - debug_fix - INFO - Loaded 10 purchases and 5 sales
+2025-04-08 16:31:51,205 - debug_fix - INFO - Inspecting FIFO errors in transactions
+2025-04-08 16:31:51,205 - debug_fix - WARNING - Asset ZEUR has 5 sales but no purchases
+2025-04-08 16:31:51,205 - debug_fix - INFO - Found 1 problematic assets: ZEUR
+2025-04-08 16:31:51,205 - debug_fix - INFO - FIFO issues report written to export/fifo_issues_report.json
+2025-04-08 16:31:51,205 - debug_fix - INFO - --- Generating Fix Suggestions ---
+2025-04-08 16:31:51,205 - debug_fix - INFO - Generating fix suggestions for FIFO issues
+2025-04-08 16:31:51,206 - debug_fix - INFO - Generated 1 manual entry suggestions
+2025-04-08 16:31:51,206 - debug_fix - INFO - Fix suggestions written to export/fifo_fix_suggestions.json
+2025-04-08 16:31:51,206 - debug_fix - INFO - SQL fix script written to export/add_manual_entries.sql
+2025-04-08 16:31:51,206 - debug_fix - INFO - Debugging and fix process completed
+2025-04-08 16:32:09,991 - debug_fix - INFO - Starting debugging and fix process
+2025-04-08 16:32:09,991 - debug_fix - INFO - --- Missing 2024 Sales Check ---
+2025-04-08 16:32:09,991 - debug_fix - INFO - Checking for missing 2024 sales in reports
+2025-04-08 16:32:09,992 - debug_fix - INFO - Found 0 sales in database, reports do include sales
+2025-04-08 16:32:09,992 - debug_fix - INFO - Debugging and fix process completed
+2025-04-08 16:32:20,515 - debug_fix - INFO - Starting debugging and fix process
+2025-04-08 16:32:20,515 - debug_fix - INFO - --- Database Consistency Check ---
+2025-04-08 16:32:20,515 - debug_fix - INFO - Checking database consistency
+2025-04-08 16:32:20,516 - debug_fix - INFO - Table 'trades' has 8 rows
+2025-04-08 16:32:20,516 - debug_fix - INFO - Table 'ledger' has 40 rows
+2025-04-08 16:32:20,516 - debug_fix - INFO - Database consistency check passed
+2025-04-08 16:32:20,516 - debug_fix - INFO - --- FIFO Calculation Check ---
+2025-04-08 16:32:20,516 - debug_fix - INFO - Checking 2024 transactions
+2025-04-08 16:32:20,516 - debug_fix - INFO - Loading transactions for year 2024
+2025-04-08 16:32:20,517 - debug_fix - INFO - Loaded 0 purchases and 0 sales
+2025-04-08 16:32:20,517 - debug_fix - INFO - Checking 2023 transactions
+2025-04-08 16:32:20,517 - debug_fix - INFO - Loading transactions for year 2023
+2025-04-08 16:32:20,517 - debug_fix - INFO - Loaded 10 purchases and 5 sales
+2025-04-08 16:32:20,517 - debug_fix - INFO - Inspecting FIFO errors in transactions
+2025-04-08 16:32:20,518 - debug_fix - WARNING - Asset ZEUR has 5 sales but no purchases
+2025-04-08 16:32:20,518 - debug_fix - INFO - Found 1 problematic assets: ZEUR
+2025-04-08 16:32:20,518 - debug_fix - INFO - FIFO issues report written to export/fifo_issues_report.json
+2025-04-08 16:32:20,518 - debug_fix - INFO - --- Missing 2024 Sales Check ---
+2025-04-08 16:32:20,518 - debug_fix - INFO - Checking for missing 2024 sales in reports
+2025-04-08 16:32:20,519 - debug_fix - INFO - Found 0 sales in database, reports do include sales
+2025-04-08 16:32:20,519 - debug_fix - INFO - --- Generating Fix Suggestions ---
+2025-04-08 16:32:20,519 - debug_fix - INFO - Generating fix suggestions for FIFO issues
+2025-04-08 16:32:20,519 - debug_fix - INFO - Generated 1 manual entry suggestions
+2025-04-08 16:32:20,519 - debug_fix - INFO - Fix suggestions written to export/fifo_fix_suggestions.json
+2025-04-08 16:32:20,519 - debug_fix - INFO - SQL fix script written to export/add_manual_entries.sql
+2025-04-08 16:32:20,519 - debug_fix - INFO - Debugging and fix process completed
+2025-04-08 16:42:55,953 - debug_fix - INFO - Starting debugging and fix process
+2025-04-08 16:42:55,953 - debug_fix - INFO - --- Database Consistency Check ---
+2025-04-08 16:42:55,953 - debug_fix - INFO - Checking database consistency
+2025-04-08 16:42:55,953 - debug_fix - INFO - Table 'trades' has 8 rows
+2025-04-08 16:42:55,954 - debug_fix - INFO - Table 'ledger' has 40 rows
+2025-04-08 16:42:55,954 - debug_fix - INFO - Database consistency check passed
+2025-04-08 16:42:55,954 - debug_fix - INFO - --- FIFO Calculation Check ---
+2025-04-08 16:42:55,954 - debug_fix - INFO - Checking 2024 transactions
+2025-04-08 16:42:55,954 - debug_fix - INFO - Loading transactions for year 2024
+2025-04-08 16:42:55,954 - debug_fix - INFO - Loaded 0 purchases and 0 sales
+2025-04-08 16:42:55,955 - debug_fix - INFO - Checking 2023 transactions
+2025-04-08 16:42:55,955 - debug_fix - INFO - Loading transactions for year 2023
+2025-04-08 16:42:55,955 - debug_fix - INFO - Loaded 10 purchases and 5 sales
+2025-04-08 16:42:55,955 - debug_fix - INFO - Inspecting FIFO errors in transactions
+2025-04-08 16:42:55,955 - debug_fix - WARNING - Asset ZEUR has 5 sales but no purchases
+2025-04-08 16:42:55,955 - debug_fix - INFO - Found 1 problematic assets: ZEUR
+2025-04-08 16:42:55,956 - debug_fix - INFO - FIFO issues report written to export/fifo_issues_report.json
+2025-04-08 16:42:55,956 - debug_fix - INFO - --- Missing 2024 Sales Check ---
+2025-04-08 16:42:55,956 - debug_fix - INFO - Checking for missing 2024 sales in reports
+2025-04-08 16:42:55,956 - debug_fix - INFO - Found 0 sales in database, reports do include sales
+2025-04-08 16:42:55,956 - debug_fix - INFO - --- Generating Fix Suggestions ---
+2025-04-08 16:42:55,956 - debug_fix - INFO - Generating fix suggestions for FIFO issues
+2025-04-08 16:42:55,957 - debug_fix - INFO - Generated 1 manual entry suggestions
+2025-04-08 16:42:55,957 - debug_fix - INFO - Fix suggestions written to export/fifo_fix_suggestions.json
+2025-04-08 16:42:55,957 - debug_fix - INFO - SQL fix script written to export/add_manual_entries.sql
+2025-04-08 16:42:55,957 - debug_fix - INFO - Debugging and fix process completed

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+g#!/usr/bin/env python3
 """
 Check Kraken API directly for 2024 sales and compare with local database.
 This script ensures the database is properly synchronized with the Kraken API data.

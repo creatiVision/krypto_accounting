@@ -1,0 +1,150 @@
+{
+  "api_test": {
+    "success": 0,
+    "failure": 0,
+    "assets": {},
+    "error": "Price API dependencies not available"
+  },
+  "database": {
+    "status": "success",
+    "tables": {
+      "trades": {
+        "row_count": 8,
+        "columns": [
+          {
+            "name": "refid",
+            "type": "TEXT"
+          },
+          {
+            "name": "data_json",
+            "type": "TEXT"
+          },
+          {
+            "name": "timestamp",
+            "type": "INTEGER"
+          }
+        ],
+        "has_data": true
+      },
+      "ledger": {
+        "row_count": 40,
+        "columns": [
+          {
+            "name": "refid",
+            "type": "TEXT"
+          },
+          {
+            "name": "data_json",
+            "type": "TEXT"
+          },
+          {
+            "name": "timestamp",
+            "type": "INTEGER"
+          }
+        ],
+        "has_data": true
+      }
+    },
+    "errors": [],
+    "integrity_check": "ok"
+  },
+  "data_consistency": {
+    "assets": {
+      "ARB": {
+        "file_count": 3,
+        "valid_files": 0,
+        "invalid_files": 3,
+        "price_range": {}
+      },
+      "ETH": {
+        "file_count": 6,
+        "valid_files": 0,
+        "invalid_files": 6,
+        "price_range": {}
+      },
+      "BTC": {
+        "file_count": 2,
+        "valid_files": 0,
+        "invalid_files": 2,
+        "price_range": {}
+      },
+      "ADA": {
+        "file_count": 5,
+        "valid_files": 0,
+        "invalid_files": 5,
+        "price_range": {}
+      },
+      "AVAX": {
+        "file_count": 2,
+        "valid_files": 0,
+        "invalid_files": 2,
+        "price_range": {}
+      },
+      "cardano": {
+        "file_count": 1,
+        "valid_files": 0,
+        "invalid_files": 1,
+        "price_range": {}
+      },
+      "avalanche-2": {
+        "file_count": 1,
+        "valid_files": 0,
+        "invalid_files": 1,
+        "price_range": {}
+      },
+      "arbitrum": {
+        "file_count": 1,
+        "valid_files": 0,
+        "invalid_files": 1,
+        "price_range": {}
+      },
+      "ethereum": {
+        "file_count": 1,
+        "valid_files": 0,
+        "invalid_files": 1,
+        "price_range": {}
+      }
+    },
+    "errors": [],
+    "warnings": [
+      "No price data found in data/price_cache/ARB_01-03-2025.json",
+      "No price data found in data/price_cache/ARB_23-05-2024.json",
+      "No price data found in data/price_cache/ARB_18-04-2023.json",
+      "No price data found in data/price_cache/ETH_01-03-2025.json",
+      "No price data found in data/price_cache/ETH_23-05-2024.json",
+      "No price data found in data/price_cache/ETH_14-08-2023.json",
+      "No price data found in data/price_cache/ETH_18-04-2023.json",
+      "No price data found in data/price_cache/ETH_06-02-2025.json",
+      "No price data found in data/price_cache/ETH_04-01-2024.json",
+      "No price data found in data/price_cache/BTC_08-03-2025.json",
+      "No price data found in data/price_cache/BTC_01-03-2025.json",
+      "No price data found in data/price_cache/ADA_01-03-2025.json",
+      "No price data found in data/price_cache/ADA_19-04-2023.json",
+      "No price data found in data/price_cache/ADA_07-01-2025.json",
+      "No price data found in data/price_cache/ADA_23-05-2024.json",
+      "No price data found in data/price_cache/ADA_10-01-2024.json",
+      "No price data found in data/price_cache/AVAX_09-05-2024.json",
+      "No price data found in data/price_cache/AVAX_01-03-2025.json",
+      "No price data found in data/price_cache/cardano_23-05-2024.json",
+      "No price data found in data/price_cache/avalanche-2_09-05-2024.json",
+      "No price data found in data/price_cache/arbitrum_23-05-2024.json",
+      "No price data found in data/price_cache/ethereum_23-05-2024.json"
+    ]
+  },
+  "timestamp": "2025-04-08T10:57:07.823112",
+  "summary": {
+    "api_tests": {
+      "success": 0,
+      "failure": 0
+    },
+    "database": {
+      "status": "success",
+      "error_count": 0
+    },
+    "data_consistency": {
+      "asset_count": 9,
+      "error_count": 0,
+      "warning_count": 22
+    }
+  }
+}

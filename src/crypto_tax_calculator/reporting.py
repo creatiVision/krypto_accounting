@@ -14,14 +14,16 @@ import traceback
 from typing import List, Dict, Any, Optional, Union, Callable
 
 # Optional Excel support - gracefully handle if not installed
-try:
-    import openpyxl
-    from openpyxl import Workbook
-    from openpyxl.styles import Font, PatternFill, Alignment
-    EXCEL_SUPPORT = True
-except ImportError:
-    EXCEL_SUPPORT = False
-    print("Excel export disabled. Install openpyxl for Excel support: pip install openpyxl")
+# Excel export functionality has been disabled
+# try:
+#     import openpyxl
+#     from openpyxl import Workbook
+#     from openpyxl.styles import Font, PatternFill, Alignment
+#     EXCEL_SUPPORT = True
+# except ImportError:
+#     EXCEL_SUPPORT = False
+#     print("Excel export disabled. Install openpyxl for Excel support: pip install openpyxl")
+EXCEL_SUPPORT = False
 
 from .models import TaxReportEntry, AggregatedTaxSummary, MatchedLotInfo
 from .logging_utils import log_event, log_error
@@ -30,14 +32,15 @@ from .logging_utils import log_event, log_error
 logs_dir = Path("logs")
 logs_dir.mkdir(exist_ok=True)
 
-class DecimalEncoder(json.JSONEncoder):
-    """Custom JSON encoder that handles Decimal types."""
-    def default(self, obj):
-        if isinstance(obj, Decimal):
-            return float(obj)
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        return super(DecimalEncoder, self).default(obj)
+# JSON export functionality has been disabled
+# class DecimalEncoder(json.JSONEncoder):
+#     """Custom JSON encoder that handles Decimal types."""
+#     def default(self, obj):
+#         if isinstance(obj, Decimal):
+#             return float(obj)
+#         if isinstance(obj, datetime):
+#             return obj.isoformat()
+#         return super(DecimalEncoder, self).default(obj)
 
 def format_timestamp(timestamp: int) -> str:
     """Format a Unix timestamp as a human-readable date string."""
@@ -202,7 +205,7 @@ def export_tax_report(
     output_dir: str = "export",
     format: str = "csv",
     include_lot_details: bool = True,
-    csv_delimiter: str = ","
+    csv_delimiter: str = ";"  # Changed default to semicolon for German format
 ) -> Dict[str, str]:
     """
     Export tax report in the specified format.
@@ -212,25 +215,16 @@ def export_tax_report(
         output_path = ensure_output_dir(output_dir)
         created_files = {}
 
-        if format.lower() == "csv":
-            created_files = export_as_csv(summary, tax_year, output_path, include_lot_details, csv_delimiter)
-            # Always generate German FIFO Nachweis format for tax year reports
-            german_file = export_as_year_csv(summary, tax_year, output_path, delimiter=";")
-            if german_file:
-                created_files['year_csv'] = german_file
-        elif format.lower() == "json":
-            created_files = export_as_json(summary, tax_year, output_path, include_lot_details)
-            # Always generate German FIFO Nachweis format for tax year reports
-            german_file = export_as_year_csv(summary, tax_year, output_path, delimiter=";")
-            if german_file:
-                created_files['year_csv'] = german_file
-        else:
-            log_event("Export Error", f"Unknown export format: {format}. Falling back to CSV.")
-            created_files = export_as_csv(summary, tax_year, output_path, include_lot_details, csv_delimiter)
-            # Always generate German FIFO Nachweis format for tax year reports
-            german_file = export_as_year_csv(summary, tax_year, output_path, delimiter=";")
-            if german_file:
-                created_files['year_csv'] = german_file
+        # JSON export functionality has been disabled
+        # Only CSV export is supported now
+        if format.lower() != "csv":
+            log_event("Export Error", f"Format {format} is not supported. Using CSV format.")
+            
+        created_files = export_as_csv(summary, tax_year, output_path, include_lot_details, csv_delimiter)
+        # Always generate German FIFO Nachweis format for tax year reports
+        german_file = export_as_year_csv(summary, tax_year, output_path, delimiter=";")
+        if german_file:
+            created_files['year_csv'] = german_file
         
         log_event("Export", f"Successfully exported tax report in {format} format for year {tax_year}")
         return created_files
@@ -246,7 +240,7 @@ def export_as_csv(
     tax_year: int,
     output_path: Path,
     include_lot_details: bool = True,
-    delimiter: str = ","
+    delimiter: str = ";"  # Changed default to semicolon for German format
 ) -> Dict[str, str]:
     """Export tax report as CSV files."""
     try:
@@ -257,27 +251,40 @@ def export_as_csv(
         report_path = output_path / report_filename
         
         with open(report_path, 'w', newline='') as csvfile:
+            # German headers for tax authorities
             fieldnames = [
-                'Date', 'Asset', 'Amount', 'Proceeds (EUR)', 'Cost Basis (EUR)', 
-                'Gain/Loss (EUR)', 'Tax Liability (EUR)', 'Holding Period (Days)', 
-                'Is Long Term', 'Is Taxable', 'Reference ID'
+                'Datum', 'Asset', 'Menge', 'Erlös (EUR)', 'Anschaffungskosten (EUR)', 
+                'Gewinn/Verlust (EUR)', 'Steuerpflicht (EUR)', 'Haltedauer (Tage)', 
+                'Langfristig', 'Steuerpflichtig', 'Referenz-ID'
             ]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=delimiter)
+            # Ensure delimiter is properly set (default to semicolon for German format)
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=delimiter if delimiter else ';')
             writer.writeheader()
             
             for entry in summary.tax_report_entries:
+                # Ensure all values are properly included, using 0 as fallback for None values
+                disposal_proceeds = entry.disposal_proceeds_eur if entry.disposal_proceeds_eur is not None else (entry.cost_or_proceeds if entry.cost_or_proceeds is not None else Decimal('0'))
+                disposal_cost_basis = entry.disposal_cost_basis_eur if entry.disposal_cost_basis_eur is not None else Decimal('0')
+                disposal_gain_loss = entry.disposal_gain_loss_eur if entry.disposal_gain_loss_eur is not None else Decimal('0')
+                holding_period = entry.holding_period_days_avg if entry.holding_period_days_avg is not None else 0
+                
+                # Ensure we have valid values for all fields
+                erloes = disposal_proceeds if disposal_proceeds is not None and disposal_proceeds != 0 else entry.cost_or_proceeds
+                kosten = disposal_cost_basis if disposal_cost_basis is not None and disposal_cost_basis != 0 else Decimal('0')
+                gewinn_verlust = disposal_gain_loss if disposal_gain_loss is not None else (erloes - kosten)
+                
                 writer.writerow({
-                    'Date': format_timestamp(entry.timestamp),
+                    'Datum': format_timestamp(entry.timestamp),
                     'Asset': entry.asset,
-                    'Amount': str(entry.amount),
-                    'Proceeds (EUR)': str(entry.disposal_proceeds_eur or entry.cost_or_proceeds),
-                    'Cost Basis (EUR)': str(entry.disposal_cost_basis_eur or 0),
-                    'Gain/Loss (EUR)': str(entry.disposal_gain_loss_eur or 0),
-                    'Tax Liability (EUR)': str(entry.tax_liability),
-                    'Holding Period (Days)': str(entry.holding_period_days_avg),
-                    'Is Long Term': str(entry.is_long_term),
-                    'Is Taxable': str(entry.is_taxable),
-                    'Reference ID': entry.refid,
+                    'Menge': str(entry.amount),
+                    'Erlös (EUR)': str(erloes),
+                    'Anschaffungskosten (EUR)': str(kosten),
+                    'Gewinn/Verlust (EUR)': str(gewinn_verlust),
+                    'Steuerpflicht (EUR)': str(entry.tax_liability if entry.tax_liability is not None else Decimal('0')),
+                    'Haltedauer (Tage)': str(holding_period),
+                    'Langfristig': 'Ja' if entry.is_long_term else 'Nein',
+                    'Steuerpflichtig': 'Ja' if entry.is_taxable else 'Nein',
+                    'Referenz-ID': entry.refid,
                 })
         
         created_files['report'] = str(report_path)
@@ -310,15 +317,15 @@ def export_as_year_csv(
     """
     try:
         # Generate a readable and specific filename for the year file
-        year_filename = f"{tax_year}.csv"
+        year_filename = f"krypto_steuer_{tax_year}.csv"
         year_path = output_path / year_filename
         
         # Write the CSV file
         with open(year_path, 'w', newline='') as csvfile:
             fieldnames = [
                 'Zeile', 'Typ', 'Steuer-Kategorie', 'Transaktions-Datum', 'Asset', 'Anzahl',
-                'Kaufdatum', 'Kaufpreis (€)/Stk', 'Verkaufsdatum', 'Verkaufspreis (€)/Stk',
-                'Gesamtkosten (€)', 'Gesamterlös (€)', 'Gebühr (€)', 'Gewinn / Verlust (€)',
+                'Kaufdatum', 'Kaufpreis (EUR)/Stk', 'Verkaufsdatum', 'Verkaufspreis (EUR)/Stk',
+                'Gesamtkosten (EUR)', 'Gesamterlos (EUR)', 'Gebuehr (EUR)', 'Gewinn / Verlust (EUR)',
                 'Haltedauer (Tage)', 'Haltedauer > 1 Jahr', 'Steuerpflichtig', 'Steuergrund',
                 'FIFO-Details', 'Notizen'
             ]
@@ -327,7 +334,8 @@ def export_as_year_csv(
             writer.writerow(fieldnames)
             
             # Add each transaction with numbered rows
-            for i, entry in enumerate(summary.tax_report_entries, 1):
+            row_counter = 1
+            for entry in summary.tax_report_entries:
                 # Skip entries that don't match the tax year
                 entry_date = datetime.fromtimestamp(entry.timestamp)
                 if entry_date.year != tax_year:
@@ -342,50 +350,93 @@ def export_as_year_csv(
                 # Tax category - always "Privates Veräußerungsgeschäft (§23 EStG)" for crypto sales
                 tax_category = "Privates Veräußerungsgeschäft (§23 EStG)"
                 
-                # Format the FIFO details information
-                fifo_details = []
-                for lot in entry.matched_lots:
-                    lot_date = lot.original_lot_purchase_date.strftime("%Y-%m-%d")
-                    lot_detail = f"Lot {len(fifo_details)+1}: {lot.amount_used} von Ref {lot.original_lot_refid} (Kauf {lot_date} @ {lot.original_lot_purchase_price_eur:.4f} €/Stk, Haltedauer: {lot.holding_period_days} Tage)"
-                    fifo_details.append(lot_detail)
+                # Calculate sale price per unit for each entry
+                sale_price_per_unit = float(entry.disposal_proceeds_eur or entry.cost_or_proceeds) / float(abs(entry.amount)) if float(entry.amount) != 0 else 0
                 
-                fifo_details_text = " | ".join(fifo_details) if fifo_details else "N/A"
+                # If no matched lots, still create a row with available information
+                if not entry.matched_lots:
+                    # Define tax status variables
+                    is_taxable_text = "Ja" if entry.is_taxable else "Nein"
+                    tax_reason = "Haltedauer <= 1 Jahr" if entry.is_taxable else "Haltedauer > 1 Jahr"
+                    
+                    # Row data for this entry without matched lots
+                    row = [
+                        str(row_counter),  # Zeile
+                        tx_type,  # Typ
+                        tax_category,  # Steuer-Kategorie
+                        transaction_date,  # Transaktions-Datum
+                        entry.asset,  # Asset
+                        str(abs(entry.amount)),  # Anzahl
+                        "Unbekannt",  # Kaufdatum
+                        "0.0000",  # Kaufpreis (€)/Stk
+                        transaction_date,  # Verkaufsdatum
+                        f"{sale_price_per_unit:.4f}",  # Verkaufspreis (€)/Stk
+                        "0.00",  # Gesamtkosten (€)
+                        str(entry.disposal_proceeds_eur or entry.cost_or_proceeds),  # Gesamterlös (€)
+                        str(entry.disposal_fee_eur or 0),  # Gebühr (€)
+                        str(entry.disposal_gain_loss_eur or 0),  # Gewinn / Verlust (€)
+                        str(entry.holding_period_days_avg or 0),  # Haltedauer (Tage)
+                        "Nein",  # Haltedauer > 1 Jahr
+                        is_taxable_text,  # Steuerpflichtig
+                        tax_reason,  # Steuergrund
+                        "Keine FIFO-Details verfügbar",  # FIFO-Details
+                        "Warnung: Keine Kaufdaten gefunden"  # Notizen
+                    ]
+                    writer.writerow(row)
+                    row_counter += 1
+                    continue
                 
-                # Determine tax reason
-                tax_reason = "Haltedauer <= 1 Jahr, steuerpflichtig" if entry.is_taxable else "Haltedauer > 1 Jahr, steuerfrei"
-                
-                # Check if an entry is long-term (held more than 1 year)
-                is_long_term_text = "Ja" if entry.is_long_term else "Nein"
-                # Is taxable in German text
-                is_taxable_text = "Ja" if entry.is_taxable else "Nein"
-                
-                # Sale price per unit
-                sale_price_per_unit = float(entry.disposal_proceeds_eur or entry.cost_or_proceeds) / float(entry.amount) if float(entry.amount) != 0 else 0
-                
-                # Row data for this entry
-                row = [
-                    str(i),  # Zeile
-                    tx_type,  # Typ
-                    tax_category,  # Steuer-Kategorie
-                    transaction_date,  # Transaktions-Datum
-                    entry.asset,  # Asset
-                    str(entry.amount),  # Anzahl
-                    "",  # Kaufdatum (empty in example)
-                    "",  # Kaufpreis (€)/Stk (empty in example)
-                    transaction_date,  # Verkaufsdatum
-                    f"{sale_price_per_unit:.4f}",  # Verkaufspreis (€)/Stk
-                    str(entry.disposal_cost_basis_eur or 0),  # Gesamtkosten (€)
-                    str(entry.disposal_proceeds_eur or entry.cost_or_proceeds),  # Gesamterlös (€)
-                    str(entry.disposal_fee_eur or 0),  # Gebühr (€)
-                    str(entry.disposal_gain_loss_eur or 0),  # Gewinn / Verlust (€)
-                    str(entry.holding_period_days_avg),  # Haltedauer (Tage)
-                    is_long_term_text,  # Haltedauer > 1 Jahr
-                    is_taxable_text,  # Steuerpflichtig
-                    tax_reason,  # Steuergrund
-                    fifo_details_text,  # FIFO-Details
-                    "; ".join(entry.notes) if hasattr(entry, 'notes') and entry.notes else ""  # Notizen
-                ]
-                writer.writerow(row)
+                # Format the FIFO details information for entries with matched lots
+                for matched_lot in entry.matched_lots:
+                    lot_date = matched_lot.original_lot_purchase_date.strftime("%Y-%m-%d")
+                    lot_price = matched_lot.original_lot_purchase_price_eur
+                    
+                    # Define tax status variables
+                    is_taxable_text = "Ja" if entry.is_taxable else "Nein"
+                    tax_reason = "Haltedauer <= 1 Jahr" if entry.is_taxable else "Haltedauer > 1 Jahr"
+                    
+                    # Calculate holding period for this specific lot
+                    # Convert both dates to naive or aware to avoid "can't subtract offset-naive and offset-aware datetimes" error
+                    if entry_date.tzinfo is not None and matched_lot.original_lot_purchase_date.tzinfo is None:
+                        # entry_date is aware, matched_lot date is naive
+                        entry_date_naive = entry_date.replace(tzinfo=None)
+                        holding_period_days = (entry_date_naive - matched_lot.original_lot_purchase_date).days
+                    elif entry_date.tzinfo is None and matched_lot.original_lot_purchase_date.tzinfo is not None:
+                        # entry_date is naive, matched_lot date is aware
+                        lot_date_naive = matched_lot.original_lot_purchase_date.replace(tzinfo=None)
+                        holding_period_days = (entry_date - lot_date_naive).days
+                    else:
+                        # Both dates are either naive or aware
+                        holding_period_days = (entry_date - matched_lot.original_lot_purchase_date).days
+                    
+                    # Calculate gain/loss for this specific lot
+                    lot_gain_loss = (sale_price_per_unit - float(lot_price)) * float(matched_lot.amount_used)
+                    
+                    # Row data for this entry
+                    row = [
+                        str(row_counter),  # Zeile
+                        tx_type,  # Typ
+                        tax_category,  # Steuer-Kategorie
+                        transaction_date,  # Transaktions-Datum
+                        entry.asset,  # Asset
+                        str(matched_lot.amount_used),  # Anzahl (using amount from matched lot)
+                        lot_date,  # Kaufdatum
+                        f"{lot_price:.4f}",  # Kaufpreis (€)/Stk
+                        transaction_date,  # Verkaufsdatum
+                        f"{sale_price_per_unit:.4f}",  # Verkaufspreis (€)/Stk
+                        f"{float(matched_lot.amount_used) * float(lot_price):.2f}",  # Gesamtkosten (€)
+                        f"{float(matched_lot.amount_used) * sale_price_per_unit:.2f}",  # Gesamterlös (€)
+                        f"{float(matched_lot.disposal_fee_eur or 0):.2f}",  # Gebühr (€) - from matched lot
+                        f"{lot_gain_loss:.2f}",  # Gewinn / Verlust (€)
+                        str(holding_period_days),  # Haltedauer (Tage)
+                        "Ja" if holding_period_days > 365 else "Nein",  # Haltedauer > 1 Jahr
+                        is_taxable_text,  # Steuerpflichtig
+                        tax_reason,  # Steuergrund
+                        f"Lot {matched_lot.original_lot_refid}",  # FIFO-Details
+                        "; ".join(entry.notes) if hasattr(entry, 'notes') and entry.notes else ""  # Notizen
+                    ]
+                    writer.writerow(row)
+                    row_counter += 1
             
             # Add summary section with a blank row separator
             writer.writerow([])
@@ -397,7 +448,7 @@ def export_as_year_csv(
             writer.writerow(["Gesamtgewinne:", str(summary.total_private_sale_gains)])
             writer.writerow(["Gesamtverluste:", str(summary.total_private_sale_losses)])
             writer.writerow(["Nettobetrag (§23):", str(summary.total_private_sale_gains - abs(summary.total_private_sale_losses))])
-            writer.writerow(["Freigrenze (§23):", "1000.00"])
+            writer.writerow(["Freigrenze (§23):", "1000.00" if tax_year >= 2024 else "600.00"])
             writer.writerow(["Steuerpflichtig (§23):", "Ja" if summary.private_sales_taxable else "Nein"])
             writer.writerow([])
             
@@ -421,7 +472,7 @@ def export_as_year_csv(
             f.write("-"*80 + "\n\n")
             
             entry_count = 0
-            for i, entry in enumerate(summary.tax_report_entries, 1):
+            for entry in summary.tax_report_entries:
                 # Skip entries that don't match the tax year
                 entry_date = datetime.fromtimestamp(entry.timestamp)
                 if entry_date.year != tax_year:
@@ -429,12 +480,12 @@ def export_as_year_csv(
                 
                 entry_count += 1
                 transaction_date = entry_date.strftime("%Y-%m-%d")
-                sale_price_per_unit = float(entry.disposal_proceeds_eur or entry.cost_or_proceeds) / float(entry.amount) if float(entry.amount) != 0 else 0
+                sale_price_per_unit = float(entry.disposal_proceeds_eur or entry.cost_or_proceeds) / float(abs(entry.amount)) if float(entry.amount) != 0 else 0
                 
                 f.write(f"Veräußerung #{entry_count}:\n")
                 f.write(f"  Datum: {transaction_date}\n")
                 f.write(f"  Asset: {entry.asset}\n")
-                f.write(f"  Verkaufte Menge: {entry.amount:.8f}\n")
+                f.write(f"  Verkaufte Menge: {abs(float(entry.amount)):.8f}\n")
                 f.write(f"  Verkaufspreis/Stk: {sale_price_per_unit:.4f} €\n")
                 f.write(f"  Gesamterlös: {float(entry.disposal_proceeds_eur or entry.cost_or_proceeds):.2f} €\n")
                 f.write(f"  Gebühr: {float(entry.disposal_fee_eur or 0):.2f} €\n")
@@ -443,10 +494,16 @@ def export_as_year_csv(
                     f.write("  FIFO-Zuordnung:\n")
                     for j, lot in enumerate(entry.matched_lots, 1):
                         purchase_date = lot.original_lot_purchase_date.strftime("%Y-%m-%d")
-                        f.write(f"    - Lot {j}: {float(lot.amount_used):.8f} von Kauf am {purchase_date} @ {float(lot.original_lot_purchase_price_eur):.4f} €/Stk, Haltedauer: {lot.holding_period_days} Tage\n")
+                        f.write(f"    - Lot {j}: Kauf von {float(lot.amount_used):.8f} {entry.asset} am {purchase_date} @ {float(lot.original_lot_purchase_price_eur):.4f} €/{entry.asset}, Haltedauer: {lot.holding_period_days} Tage\n")
+                        f.write(f"      Gesamtkosten: {float(lot.cost_basis_eur):.2f} €, Verkauf von {float(lot.amount_used):.8f} {entry.asset} am {transaction_date} @ {sale_price_per_unit:.4f} €/{entry.asset}, Gesamterlös: {float(lot.amount_used) * sale_price_per_unit:.2f} €, ")
+                        gain_loss = (sale_price_per_unit - float(lot.original_lot_purchase_price_eur)) * float(lot.amount_used)
+                        if gain_loss >= 0:
+                            f.write(f"Gewinn: +{gain_loss:.2f} €\n")
+                        else:
+                            f.write(f"Verlust: {gain_loss:.2f} €\n")
                 else:
                     f.write("  FIFO-Zuordnung:\n")
-                    f.write("    - N/A\n")
+                    f.write("    - Keine Kaufdaten gefunden\n")
                     
                 f.write(f"  Gesamtkosten (FIFO): {float(entry.disposal_cost_basis_eur or 0):.2f} €\n")
                 f.write(f"  Gewinn/Verlust: {float(entry.disposal_gain_loss_eur or 0):.2f} €\n")
@@ -496,72 +553,3 @@ def export_as_year_csv(
                  exception=e)
         # Return empty string to indicate failure
         return ""
-
-def export_as_json(
-    summary: AggregatedTaxSummary,
-    tax_year: int,
-    output_path: Path,
-    include_lot_details: bool = True
-) -> Dict[str, str]:
-    """Export tax report as JSON files."""
-    try:
-        # Full report in a single JSON file
-        json_filename = create_filename("tax_report", tax_year, "json")
-        json_path = output_path / json_filename
-        
-        # Prepare summary data
-        summary_data = {
-            "tax_year": tax_year,
-            "total_profit_loss": float(summary.total_profit_loss),
-            "total_private_sale_gains": float(summary.total_private_sale_gains),
-            "total_private_sale_losses": float(summary.total_private_sale_losses),
-            "total_other_income": float(summary.total_other_income),
-            "total_tax_liability": float(summary.total_tax_liability),
-            "warnings": summary.warnings,
-            "report_entries": []
-        }
-        
-        # Prepare detailed entries
-        for entry in summary.tax_report_entries:
-            entry_data = {
-                "date": format_timestamp(entry.timestamp),
-                "asset": entry.asset,
-                "amount": str(entry.amount),
-                "proceeds_eur": str(entry.disposal_proceeds_eur or entry.cost_or_proceeds),
-                "cost_basis_eur": str(entry.disposal_cost_basis_eur or 0),
-                "gain_loss_eur": str(entry.disposal_gain_loss_eur or 0),
-                "tax_liability_eur": str(entry.tax_liability),
-                "holding_period_days": entry.holding_period_days_avg,
-                "is_long_term": entry.is_long_term,
-                "is_taxable": entry.is_taxable,
-                "refid": entry.refid,
-            }
-            
-            # Include lot details if requested
-            if include_lot_details and entry.matched_lots:
-                entry_data["matched_lots"] = []
-                for lot in entry.matched_lots:
-                    lot_data = {
-                        "acquisition_date": lot.original_lot_purchase_date.strftime("%Y-%m-%d %H:%M:%S"),
-                        "acquisition_refid": lot.original_lot_refid,
-                        "amount_used": str(lot.amount_used),
-                        "acquisition_price_eur": str(lot.original_lot_purchase_price_eur),
-                        "cost_basis_eur": str(lot.cost_basis_eur),
-                        "holding_period_days": lot.holding_period_days
-                    }
-                    entry_data["matched_lots"].append(lot_data)
-            
-            summary_data["report_entries"].append(entry_data)
-        
-        # Write to file
-        with open(json_path, 'w') as json_file:
-            json.dump(summary_data, json_file, cls=DecimalEncoder, indent=2)
-        
-        log_event("Export", f"Created JSON tax report: {json_path}")
-        return {'json': str(json_path)}
-    except Exception as e:
-        error_msg = f"Failed to export JSON report: {str(e)}"
-        log_error("reporting", "JSONExportError", error_msg, 
-                details={"tax_year": tax_year}, 
-                exception=e)
-        return {}

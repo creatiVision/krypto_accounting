@@ -1,0 +1,29 @@
+Zeile;Typ;Steuer-Kategorie;Transaktions-Datum;Asset;Anzahl;Kaufdatum;Kaufpreis (EUR)/Stk;Verkaufsdatum;Verkaufspreis (EUR)/Stk;Gesamtkosten (EUR);Gesamterlos (EUR);Gebuehr (EUR);Gewinn / Verlust (EUR);Haltedauer (Tage);Haltedauer > 1 Jahr;Steuerpflichtig;Steuergrund;FIFO-Details;Notizen
+1;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-01-04;XETH;0.1194286700;2022-04-19;2875.3711;2024-01-04;1490.4778;343.40;178.01;0.00;-165.40;625;Ja;Nein;Haltedauer > 1 Jahr;Lot LOAR7Y-63ILA-GJZ3LB;
+2;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-01-04;XETH;0.4832533000;2022-12-28;1119.5769;2024-01-04;1490.4778;541.04;720.28;0.00;179.24;372;Ja;Nein;Haltedauer > 1 Jahr;Lot L54BSH-SBY7W-IIKJJG;
+3;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-01-04;XETH;0.1339538600;2024-11-06;2216.2976;2024-01-04;1490.4778;296.88;199.66;0.00;-97.23;-308;Nein;Nein;Haltedauer > 1 Jahr;Lot LATSAM-O6CWT-U6BFCG;
+4;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-01-10;ADA;134.41133900;2022-04-19;0.8831;2024-01-10;0.5302;118.70;71.26;0.00;-47.43;631;Ja;Nein;Haltedauer > 1 Jahr;Lot LPMQP5-4O6P7-Y4ELLN;
+5;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-01-10;ADA;625.14859000;2022-12-28;0.2337;2024-01-10;0.5302;146.09;331.45;0.00;185.36;378;Ja;Nein;Haltedauer > 1 Jahr;Lot LNYYI5-7TAID-6TP2X7;
+6;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-01-10;ADA;15.00000000;2023-04-19;0.3814;2024-01-10;0.5302;5.72;7.95;0.00;2.23;266;Nein;Nein;Haltedauer > 1 Jahr;Lot TQP4L3-Q5R2O-4CQ3U4;
+7;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-01-10;ADA;581.69404000;2023-04-19;0.3814;2024-01-10;0.5302;221.86;308.41;0.00;86.55;266;Nein;Nein;Haltedauer > 1 Jahr;Lot TFJXYS-7T7L5-KEYW5E;
+8;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-05-09;AVAX;15.8497700000;2023-04-24;16.1000;2024-05-09;31.3700;255.18;497.21;0.00;242.03;380;Ja;Nein;Haltedauer > 1 Jahr;Lot LBU4Y7-EE5I5-WOURH4;
+9;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-05-23;XETH;0.1194286700;2022-04-19;2875.3711;2024-05-23;3456.8998;343.40;412.85;0.00;69.45;765;Ja;Nein;Haltedauer > 1 Jahr;Lot LOAR7Y-63ILA-GJZ3LB;
+10;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-05-23;XETH;0.3321813300;2022-12-28;1119.5769;2024-05-23;3456.8998;371.90;1148.32;0.00;776.42;512;Ja;Nein;Haltedauer > 1 Jahr;Lot L54BSH-SBY7W-IIKJJG;
+11;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-05-23;ADA;452.08465700;2023-04-19;0.3814;2024-05-23;0.4242;172.42;191.79;0.00;19.36;400;Ja;Nein;Haltedauer > 1 Jahr;Lot TFJXYS-7T7L5-KEYW5E;
+12;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-05-23;ARB;50.00000;2023-04-18;1.5223;2024-05-23;1.0688;76.11;53.44;0.00;-22.68;401;Ja;Nein;Haltedauer > 1 Jahr;Lot T6WBV3-XPEJ7-UU4RSR;
+13;SPEND;Privates Veräußerungsgeschäft (§23 EStG);2024-05-23;ARB;122.56000;2023-04-24;1.2577;2024-05-23;1.0688;154.14;130.99;0.00;-23.15;395;Ja;Nein;Haltedauer > 1 Jahr;Lot L3EB3W-RSLGQ-YJVEUL;
+
+--- Steuerliche Zusammenfassung ---
+Steuerjahr:;2024
+
+Private Veräußerungsgeschäfte (§23 EStG):
+Gesamtgewinne:;1643.12155108000594
+Gesamtverluste:;-45.8265840000000
+Nettobetrag (§23):;1597.29496708000594
+Freigrenze (§23):;1000.00
+Steuerpflichtig (§23):;Ja
+
+Sonstige Einkünfte (§22 Nr. 3 EStG):
+Gesamteinkünfte (z.B. Staking):;0
+Freigrenze (§22):;256
+Steuerpflichtig (§22):;Nein

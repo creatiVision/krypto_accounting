@@ -284,25 +284,29 @@ def get_ledger(api_key: str, api_secret: str, start_time: int, end_time: int) ->
                          details={"from": datetime.fromtimestamp(fetch_start).strftime("%Y-%m-%d")})
                          
                 fetched = api_get_ledger(api_key, api_secret, fetch_start, end_time)
-                log_event("Kraken API", f"Fetched {len(fetched)} new ledger entries")
-                
-                # Save new data to cache
-                saved_count = save_entries('ledger', fetched)
-                if saved_count < len(fetched):
-                    log_warning("Database", "PartialSave", 
-                              f"Only saved {saved_count} of {len(fetched)} ledger entries")
-                
-                # Combine results, avoiding duplicates by using a dictionary with refid as key
-                all_entries = {entry.get('refid'): entry for entry in cached}
-                for entry in fetched:
-                    all_entries[entry.get('refid')] = entry
-                
-                # Convert back to list and return
-                return list(all_entries.values())
+                if fetched:
+                    log_event("Kraken API", f"Fetched {len(fetched)} new ledger entries")
+                    
+                    # Save new data to cache
+                    saved_count = save_entries('ledger', fetched)
+                    if saved_count < len(fetched):
+                        log_warning("Database", "PartialSave", 
+                                  f"Only saved {saved_count} of {len(fetched)} ledger entries")
+                    
+                    # Combine results, avoiding duplicates by using a dictionary with refid as key
+                    all_entries = {entry.get('refid'): entry for entry in cached}
+                    for entry in fetched:
+                        all_entries[entry.get('refid')] = entry
+                    
+                    # Convert back to list and return
+                    result = list(all_entries.values())
+                else:
+                    log_event("Kraken API", "No new ledger entries fetched")
+                    result = cached
             except Exception as e:
                 log_error("Kraken API", "FetchError", "Failed to fetch ledger entries", exception=e)
-                # Return cached data if API fails
-                return cached
+                result = cached
+            return result
         else:
             # No new data needed, return cache only
             log_event("Kraken", "Using cached ledger entries only (cache is up to date)")

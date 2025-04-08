@@ -141,10 +141,12 @@ fi
 echo -e "${GREEN}Kraken API credentials loaded successfully.${NC}"
 
 # Run the calculator
-./venv/bin/python -m src.crypto_tax_calculator.main --tax-year "$TAX_YEAR" --export-format "$EXPORT_FORMAT_LOWER" --output-dir "$OUTPUT_DIR"
+LOG_FILE="logs/crypto_tax_$(date +'%Y%m%d').log"
+./venv/bin/python -m src.crypto_tax_calculator.main --tax-year "$TAX_YEAR" --export-format "$EXPORT_FORMAT_LOWER" --output-dir "$OUTPUT_DIR" 2>&1 | tee "$LOG_FILE"
 
 # Print completion message
 echo -e "${GREEN}Tax calculation complete! Reports available in the ${YELLOW}$OUTPUT_DIR${GREEN} directory.${NC}"
+echo -e "Log file: ${YELLOW}$LOG_FILE${NC}"
 
 # Deactivate the virtual environment
 deactivate

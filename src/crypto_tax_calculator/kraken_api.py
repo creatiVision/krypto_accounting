@@ -5,21 +5,55 @@ Handles communication with the Kraken REST API.
 """
 
 import base64
+import datetime
 import hashlib
 import hmac
 import time
 import traceback
 import urllib.parse
+import threading
+import random
+from pathlib import Path
 from typing import Dict, List, Optional, Any
 
 import requests
 
-# Placeholder for logging function, will be properly integrated later
-def log_event(event: str, details: str):
-    print(f"[LOG] {event}: {details}")
+from .logging_utils import log_event, log_error, log_api_call
 
 # Placeholder for nonce management, will be refined
 LAST_NONCE = 0
+
+# Rate limiter for Kraken API
+class RateLimiter:
+    """Simple token bucket rate limiter for Kraken API."""
+    def __init__(self, rate=3, per=1.0, initial_tokens=3):
+        self.rate = rate  # tokens per second
+        self.per = per    # seconds
+        self.tokens = initial_tokens
+        self.last_check = time.time()
+        self.lock = threading.Lock()  # For thread safety
+
+    def wait_for_token(self):
+        """Wait until a token is available."""
+        with self.lock:
+            now = time.time()
+            time_passed = now - self.last_check
+            self.last_check = now
+            
+            # Add tokens based on time passed, up to max capacity
+            self.tokens = min(self.rate, self.tokens + time_passed * (self.rate / self.per))
+            
+            if self.tokens < 1:
+                # Calculate sleep time needed to get 1 token
+                sleep_time = (1 - self.tokens) * (self.per / self.rate)
+                time.sleep(sleep_time)
+                self.tokens = 0  # We used our token
+                self.last_check = time.time()
+            else:
+                self.tokens -= 1  # We used one token
+
+# Create a global rate limiter instance
+RATE_LIMITER = RateLimiter(rate=3, per=1.0)  # 3 requests per second
 
 def get_safe_nonce() -> str:
     """Generate a nonce that is guaranteed to be higher than previous ones."""
@@ -40,7 +74,19 @@ def get_kraken_signature(urlpath: str, data: Dict[str, Any], secret: str) -> str
     return sigdigest.decode()
 
 def kraken_request(uri_path: str, data: Dict[str, Any], api_key: str, api_sec: str, public: bool = False) -> Dict[str, Any]:
-    """Make a request to Kraken API."""
+    """Make a request to Kraken API with rate limiting."""
+    # Log the timestamp before waiting for a token
+    request_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    log_event("API", f"[{request_time}] Requesting token for {uri_path}")
+    
+    # Wait for a token before making the request
+    start_time = time.time()
+    RATE_LIMITER.wait_for_token()
+    
+    # Log the timestamp after getting a token
+    token_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    log_event("API", f"[{token_time}] Got token for {uri_path}")
+    
     headers = {}
     if not public:
         headers['API-Key'] = api_key
@@ -48,22 +94,38 @@ def kraken_request(uri_path: str, data: Dict[str, Any], api_key: str, api_sec: s
 
     api_domain = "https://api.kraken.com"
     url = api_domain + uri_path
+    method = "GET" if public else "POST"
 
     try:
-        # print(f"Sending request to Kraken API: {uri_path}") # Reduced verbosity
-        # print(f"Request data: {data}") # Reduced verbosity
-
+        # Record the time before making the request
+        request_start_time = time.time()
+        
         if public:
              response = requests.get(url, params=data, timeout=30)
         else:
             response = requests.post(url, headers=headers, data=data, timeout=30)
-
-        # print(f"Response status code: {response.status_code}") # Reduced verbosity
+        
+        # Calculate the duration of the request
+        duration_ms = (time.time() - request_start_time) * 1000
+        
+        # Log the API call with the response time
+        response_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        log_event("API", f"[{response_time}] Received response for {uri_path}")
+        
         response_data = response.json()
 
         if response.status_code != 200:
             error_msg = f"Kraken API returned status code {response.status_code}: {response_data}"
-            log_event("API Error", error_msg)
+            log_api_call(
+                api_name="Kraken",
+                endpoint=uri_path,
+                method=method,
+                params=data,
+                success=False,
+                response_code=response.status_code,
+                duration_ms=duration_ms,
+                error_message=error_msg
+            )
             print(f"ERROR: {error_msg}")
             return {"error": response_data.get("error", ["Unknown API error"])}
 
@@ -71,20 +133,40 @@ def kraken_request(uri_path: str, data: Dict[str, Any], api_key: str, api_sec: s
             error_msg = f"Kraken API returned error: {response_data['error']}"
             # Don't log nonce errors excessively here, handle in calling function
             if "EAPI:Invalid nonce" not in str(response_data['error']):
-                log_event("API Error", error_msg)
+                log_api_call(
+                    api_name="Kraken",
+                    endpoint=uri_path,
+                    method=method,
+                    params=data,
+                    success=False,
+                    response_code=response.status_code,
+                    duration_ms=duration_ms,
+                    error_message=error_msg
+                )
                 print(f"ERROR: {error_msg}")
             return response_data # Return the error structure for handling
 
+        # Log successful API call
+        log_api_call(
+            api_name="Kraken",
+            endpoint=uri_path,
+            method=method,
+            params=data,
+            success=True,
+            response_code=response.status_code,
+            duration_ms=duration_ms
+        )
+        
         return response_data
     except requests.exceptions.RequestException as e:
         error_msg = f"Network error during Kraken API request: {str(e)}"
-        log_event("API Network Error", error_msg)
+        log_error("API", "NetworkError", error_msg, exception=e)
         print(f"ERROR: {error_msg}")
         traceback.print_exc()
         return {"error": [f"Network error: {str(e)}"]}
     except Exception as e:
         error_msg = f"Exception during Kraken API request: {str(e)}"
-        log_event("API Exception", error_msg)
+        log_error("API", "Exception", error_msg, exception=e)
         print(f"ERROR: {error_msg}")
         traceback.print_exc()
         return {"error": [str(e)]}
@@ -120,22 +202,43 @@ def fetch_kraken_data(endpoint: str, params: Dict[str, Any], api_key: str, api_s
 
                 if "error" in result and result["error"]:
                     error_str = str(result["error"])
-                    if "EAPI:Invalid nonce" in error_str:
+                    if "EAPI:Rate limit exceeded" in error_str:
+                        # Specific handling for rate limit errors
                         if current_retry < max_retries - 1:
                             current_retry += 1
-                            wait_time = (2 ** current_retry) # Exponential backoff
-                            print(f"Invalid nonce error ({data_key}). Retrying in {wait_time}s (attempt {current_retry}/{max_retries})...")
+                            wait_time = (2 ** current_retry) + (random.random() * 0.5)  # Exponential backoff with jitter
+                            retry_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+                            print(f"Rate limit exceeded ({data_key}). Retrying in {wait_time:.2f}s (attempt {current_retry}/{max_retries})...")
+                            log_event("API", f"[{retry_time}] Rate limit exceeded for {data_key}. Retrying in {wait_time:.2f}s (attempt {current_retry}/{max_retries})")
+                            time.sleep(wait_time)
+                            continue  # Retry the loop
+                        else:
+                            error_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+                            error_msg = f"Max retry attempts reached for rate limit error ({data_key})."
+                            print(f"ERROR: {error_msg}")
+                            log_error("API", "RateLimitError", f"[{error_time}] {data_key} rate limit error persists after {max_retries} retries")
+                            raise Exception(error_msg)  # Propagate error up
+                    elif "EAPI:Invalid nonce" in error_str:
+                        if current_retry < max_retries - 1:
+                            current_retry += 1
+                            wait_time = (2 ** current_retry) + (random.random() * 0.5)  # Exponential backoff with jitter
+                            retry_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+                            print(f"Invalid nonce error ({data_key}). Retrying in {wait_time:.2f}s (attempt {current_retry}/{max_retries})...")
+                            log_event("API", f"[{retry_time}] Invalid nonce error for {data_key}. Retrying in {wait_time:.2f}s (attempt {current_retry}/{max_retries})")
                             time.sleep(wait_time)
                             continue # Retry the loop
                         else:
+                            error_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
                             error_msg = f"Max retry attempts reached for nonce error ({data_key})."
                             print(f"ERROR: {error_msg}")
-                            log_event("API Error", f"{data_key} nonce error persists after {max_retries} retries")
+                            log_error("API", "NonceError", f"[{error_time}] {data_key} nonce error persists after {max_retries} retries")
                             raise Exception(error_msg) # Propagate error up
                     else:
                         # Other API errors
+                        error_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
                         error_msg = f"Error fetching {data_key}: {result['error']}"
                         print(f"ERROR: {error_msg}")
+                        log_error("API", "APIError", f"[{error_time}] {error_msg}")
                         raise Exception(error_msg) # Propagate error up
 
                 # If we made it here, the request was successful
@@ -143,7 +246,8 @@ def fetch_kraken_data(endpoint: str, params: Dict[str, Any], api_key: str, api_s
 
             except Exception as retry_error:
                  # Don't retry generic exceptions unless specifically nonce related
-                log_event("API Fetch Error", f"Unhandled exception during {data_key} fetch: {retry_error}")
+                error_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+                log_error("API", "FetchError", f"[{error_time}] Unhandled exception during {data_key} fetch", exception=retry_error)
                 raise # Re-raise the exception
 
         # Process successful batch
@@ -166,7 +270,10 @@ def fetch_kraken_data(endpoint: str, params: Dict[str, Any], api_key: str, api_s
 
         offset += len(batch_list)
         # print(f"Increasing offset to {offset} for next batch") # Reduced verbosity
-        time.sleep(0.5) # Small delay between pages
+        
+        # Add jitter to the delay between pages for better distribution of requests
+        jitter = random.uniform(0.3, 0.7)  # 30-70% variation
+        time.sleep(jitter)  # Variable delay between pages
 
     print(f"Total {data_key} found: {len(all_data)}")
     if not all_data:
@@ -221,8 +328,8 @@ if __name__ == "__main__":
     else:
         print("API Keys loaded from .env")
         # Example: Fetch trades for a specific period (replace with actual timestamps)
-        test_start_time = int(datetime(2023, 1, 1).timestamp())
-        test_end_time = int(datetime(2023, 1, 31).timestamp())
+        test_start_time = int(datetime.datetime(2023, 1, 1).timestamp())
+        test_end_time = int(datetime.datetime(2023, 1, 31).timestamp())
 
         try:
             # print("\nFetching Trades...")

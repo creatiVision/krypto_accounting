@@ -1,159 +1,102 @@
-# Debugging and Error Handling Guide
+# Crypto Tax Calculator Debugging Guide
 
-This guide provides information about the debugging tools, error handling, and logging capabilities of the Crypto Tax Calculator application.
+This document provides a comprehensive guide to debugging and fixing issues identified in the Crypto Tax Calculator application.
 
-## Logging System
+## Identified Issues
 
-A comprehensive logging system has been implemented to track events, errors, and warnings throughout the application. Logs are stored in the `logs/` directory.
+From analyzing the logs and source code, we've identified the following issues:
 
-### Log Types
+1. **Variable Errors in Reporting Module**: 
+   - In `reporting.py`, the `sale_price_per_unit` variable was used before being defined
+   - Tax status variables were also missing in the `export_as_year_csv` function
 
-1. **Event Logs**: Track normal application operations
-2. **Error Logs**: Capture exceptions and error conditions
-3. **Warning Logs**: Record potential issues that don't halt execution
-4. **API Call Logs**: Monitor interactions with external APIs
-5. **Transaction Logs**: Document cryptocurrency transactions
+2. **FIFO Calculation Errors**:
+   - Log shows errors like: "Cannot match lots for 0.4516100000 ETH (Ref: LJC3TF-S3X4H-G6MWWN) - No holdings available"
+   - This indicates missing purchase records for assets that have sales
 
-### Log Format
+3. **Missing 2024 Sales in Reports**:
+   - Reports are generated but sales from 2024 aren't included
+   - The database has trades but they aren't reflected in the tax reports
 
-Logs include the following information:
-- Timestamp
-- Module/Component 
-- Event/Error type
-- Message
-- Details (if applicable)
-- Traceback (for errors)
+4. **Database Consistency Issues**:
+   - Potential database integrity problems
+   - Possible malformed JSON data in the database
 
-## Diagnostic Tool
+## Fixed Issues
 
-The `diagnostic.py` script helps identify issues with the system:
+1. **Variable Error in Reporting Module**: 
+   - Fixed the `sale_price_per_unit` variable initialization in `reporting.py`
+   - Added missing tax status variables
 
-```bash
-python3 diagnostic.py [options]
-```
+## Debug Tools
 
-### Options
+We've created a comprehensive debugging script (`debug_plan.py`) to identify and suggest fixes for the remaining issues.
 
-- `--skip-api`: Skip API connection tests
-- `--skip-db`: Skip database integrity checks
-- `--skip-data`: Skip data consistency validation
-- `--assets ASSETS`: Specify assets to test (default: BTC ETH ADA AVAX ARB DOT SOL XRP)
-- `--historical`: Include historical price API tests
-- `-h, --help`: Show help message
-
-### Features
-
-1. **API Connectivity Tests**: Checks connectivity to price APIs
-2. **Database Integrity Checks**: Validates the SQLite database structure and contents
-3. **Data Consistency Validation**: Ensures cached price data is valid and within reasonable ranges
-4. **Report Generation**: Creates JSON reports with the test results
-
-### Example Usage
+### Running the Debug Script
 
 ```bash
-# Run all diagnostics
-python3 diagnostic.py
+# Run all checks
+python debug_plan.py --all
 
-# Skip API tests and only check database and data
-python3 diagnostic.py --skip-api
-
-# Test specific assets
-python3 diagnostic.py --assets BTC ETH
-
-# Include historical price API tests
-python3 diagnostic.py --historical
+# Run specific checks
+python debug_plan.py --db-check      # Check database consistency
+python debug_plan.py --fifo-check    # Check for FIFO calculation issues 
+python debug_plan.py --sales-check   # Check for missing 2024 sales
+python debug_plan.py --generate-fixes # Generate fix suggestions
 ```
 
-## Issue Fixer Tool
+### What the Debug Script Does
 
-The `fix_issues.py` script automatically addresses common issues:
+1. **Database Consistency Check**
+   - Verifies tables exist and have data
+   - Checks for malformed JSON entries
+   - Runs the SQLite PRAGMA integrity check
 
-```bash
-python3 fix_issues.py [options]
-```
+2. **FIFO Calculation Analysis**
+   - Identifies assets with missing purchase records
+   - Calculates the total shortfall in purchase quantities
+   - Generates reports on problematic assets
 
-### Options
+3. **Missing Sales Check**
+   - Checks if 2024 sales from the database appear in the reports
+   - Compares database records with report content
 
-- `--csv-dirs CSV_DIRS`: Directories containing CSV files to unify (default: export data)
-- `--report-file REPORT_FILE`: Path to the tax report file (default: export/tax_report_2024.json)
-- `--sales-file SALES_FILE`: Path to the sales data file (default: data/trades.json)
-- `--skip-csv`: Skip CSV delimiter unification
-- `--skip-sales`: Skip checking for missing sales
-- `-h, --help`: Show help message
+4. **Fix Generation**
+   - Creates SQL scripts to add missing purchase records
+   - Suggests parameter values for manual entries
+   - Calculates appropriate timestamps for the entries
 
-### Features
+## How to Fix Issues
 
-1. **CSV Delimiter Unification**: Standardizes all CSV files to use a consistent delimiter (comma)
-2. **Missing Sales Detection**: Identifies 2024 sales that might be missing from reports
-3. **Directory Setup**: Creates necessary directories if they don't exist
+### 1. Fix Variable Errors
+- Already fixed in `reporting.py`
 
-### Example Usage
+### 2. Fix FIFO Calculation Errors
+- Run `debug_plan.py --fifo-check --generate-fixes`
+- Review the generated `fifo_fix_suggestions.json` file
+- Apply the SQL fixes using the generated `add_manual_entries.sql` script:
+  ```bash
+  sqlite3 data/kraken_cache.db < export/add_manual_entries.sql
+  ```
 
-```bash
-# Fix all issues using default settings
-python3 fix_issues.py
+### 3. Fix Missing 2024 Sales
+- After fixing the FIFO issues, re-run the tax calculator
+- Check if sales now appear in the reports
+- If problems persist, review the database entries for proper classification
 
-# Only unify CSV delimiters in specific directories
-python3 fix_issues.py --skip-sales --csv-dirs export data/exports
+### 4. Fix Database Consistency
+- Run `debug_plan.py --db-check` to identify database issues
+- Fix any malformed JSON entries using the diagnostic output
 
-# Only check for missing 2024 sales
-python3 fix_issues.py --skip-csv
-```
+## Validation
 
-## Error Handling
+After applying fixes:
 
-The application now includes comprehensive error handling across all major components:
+1. Run the tax calculator again
+2. Check the logs for any remaining errors
+3. Verify reports include all 2024 sales
+4. Confirm that FIFO calculations no longer show "No holdings available" errors
 
-1. **API Calls**: All API calls include error handling with retries and fallbacks
-2. **Database Operations**: Database errors are properly caught and logged
-3. **File Operations**: File read/write operations include proper exception handling
-4. **Data Validation**: Input data is validated before processing
-5. **CSV Processing**: CSV files are checked for correct format and delimiters
+## Debug Logs
 
-## Debugging Common Issues
-
-### Missing 2024 Sales in Reports
-
-If you notice 2024 sales are missing from your reports:
-
-1. Run the issue fixer with specific focus on sales:
-   ```bash
-   python3 fix_issues.py --skip-csv
-   ```
-2. Check the generated `missing_sales_2024.json` file
-3. Run the tax calculator again with the correct date range
-
-### CSV Delimiter Issues
-
-If you're experiencing issues with CSV files:
-
-1. Run the issue fixer to standardize delimiters:
-   ```bash
-   python3 fix_issues.py --skip-sales
-   ```
-2. Verify the CSV files open correctly in your spreadsheet application
-
-### Database Issues
-
-If the database seems corrupted or incomplete:
-
-1. Run the diagnostic tool with focus on database:
-   ```bash
-   python3 diagnostic.py --skip-api --skip-data
-   ```
-2. Check the diagnostic report for specific database issues
-3. Consider backing up and rebuilding the database if serious issues are found
-
-## Log Files
-
-### Main Log File
-
-The main application log is stored at `logs/crypto_tax_{date}.log`
-
-### Diagnostic Reports
-
-Diagnostic reports are stored at `logs/diagnostic_report_{timestamp}.json`
-
-### Missing Sales Reports
-
-Missing sales reports are stored at `missing_sales_2024.json`
+All debugging output is saved to `logs/debug_fix.log` for reference. Additional diagnostics are saved to the `export/` directory.

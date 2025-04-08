@@ -1,0 +1,80 @@
+2025-04-07 23:33:48,208 - crypto_tax_calculator - INFO - Setup: Ensured directory exists: logs
+2025-04-07 23:33:48,209 - crypto_tax_calculator - INFO - Setup: Ensured directory exists: export
+2025-04-07 23:33:48,209 - crypto_tax_calculator - INFO - Setup: Ensured directory exists: data
+2025-04-07 23:33:48,209 - crypto_tax_calculator - INFO - Start: Starting issue fixing process
+2025-04-07 23:33:48,209 - crypto_tax_calculator - INFO - CSVUnification: Processing directory: export
+2025-04-07 23:33:48,209 - crypto_tax_calculator - INFO - CSV: File export/elster_format_2024_20250407_230613.csv already uses the target delimiter: ,
+2025-04-07 23:33:48,209 - crypto_tax_calculator - INFO - CSV: File export/tax_report_2024_20250407_230613.csv already uses the target delimiter: ,
+2025-04-07 23:33:48,209 - crypto_tax_calculator - INFO - CSV: Converting export/archive/log_2023.csv from delimiter ';' to ','
+2025-04-07 23:33:48,210 - crypto_tax_calculator - INFO - CSV: Successfully converted delimiter in export/archive/log_2023.csv
+2025-04-07 23:33:48,210 - crypto_tax_calculator - INFO - CSV: Converting export/archive/log_2024.csv from delimiter ';' to ','
+2025-04-07 23:33:48,210 - crypto_tax_calculator - INFO - CSV: Successfully converted delimiter in export/archive/log_2024.csv
+2025-04-07 23:33:48,210 - crypto_tax_calculator - INFO - CSV: Converting export/archive/krypto_steuer_2024.csv from delimiter ';' to ','
+2025-04-07 23:33:48,211 - crypto_tax_calculator - INFO - CSV: Successfully converted delimiter in export/archive/krypto_steuer_2024.csv
+2025-04-07 23:33:48,211 - crypto_tax_calculator - INFO - CSV: Converting export/archive/krypto_steuer_2023.csv from delimiter ';' to ','
+2025-04-07 23:33:48,211 - crypto_tax_calculator - INFO - CSV: Successfully converted delimiter in export/archive/krypto_steuer_2023.csv
+2025-04-07 23:33:48,211 - crypto_tax_calculator - INFO - CSV: Converting export/archive/krypto_steuer_2022.csv from delimiter ';' to ','
+2025-04-07 23:33:48,211 - crypto_tax_calculator - INFO - CSV: Successfully converted delimiter in export/archive/krypto_steuer_2022.csv
+2025-04-07 23:33:48,211 - crypto_tax_calculator - INFO - CSV: Converting export/archive/log_2022.csv from delimiter ';' to ','
+2025-04-07 23:33:48,212 - crypto_tax_calculator - INFO - CSV: Successfully converted delimiter in export/archive/log_2022.csv
+2025-04-07 23:33:48,212 - crypto_tax_calculator - INFO - CSV: File export/tax_summary_2024_20250407_230613.csv already uses the target delimiter: ,
+2025-04-07 23:33:48,212 - crypto_tax_calculator - INFO - CSV: Converting export/2024.csv from delimiter ';' to ','
+2025-04-07 23:33:48,212 - crypto_tax_calculator - INFO - CSV: Successfully converted delimiter in export/2024.csv
+2025-04-07 23:33:48,212 - crypto_tax_calculator - INFO - CSV: Processed 10 CSV files in export
+2025-04-07 23:33:48,212 - crypto_tax_calculator - INFO - CSVUnification: Processing directory: data
+2025-04-07 23:33:48,213 - crypto_tax_calculator - INFO - CSV: Processed 0 CSV files in data
+2025-04-07 23:33:48,213 - crypto_tax_calculator - INFO - CSVUnification: Processed 10 CSV files
+2025-04-07 23:33:48,213 - crypto_tax_calculator - ERROR - SalesCheck - FileNotFound: Report file not found: export/tax_report_2024.json
+2025-04-07 23:33:48,213 - crypto_tax_calculator - INFO - SalesCheck: No missing sales found for 2024
+2025-04-07 23:33:48,213 - crypto_tax_calculator - INFO - Complete: Issue fixing process completed successfully
+2025-04-07 23:38:01,697 - crypto_tax_calculator - INFO - Export: Created CSV tax reports in export
+2025-04-07 23:38:01,697 - crypto_tax_calculator - INFO - Export: Successfully exported tax report in csv format for year 2024
+2025-04-07 23:51:06,835 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2024-01-01", "end_date": "2025-01-01"}
+2025-04-07 23:51:06,835 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-07 23:51:06,835 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-07 23:51:06,835 - crypto_tax - INFO - [Database] Retrieved 0 entries from trades {"start_time": 1704063600, "end_time": 1735686000}
+2025-04-07 23:51:06,836 - crypto_tax - INFO - [Kraken] Retrieved 0 cached trades 
+2025-04-07 23:51:06,836 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2024-01-01"}
+2025-04-07 23:51:07,103 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-07 23:51:07,104 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-07 23:51:07,104 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2024-01-01", "end_date": "2025-01-01"}
+2025-04-07 23:51:07,104 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-07 23:51:07,105 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-07 23:51:07,105 - crypto_tax - INFO - [Database] Retrieved 19 entries from ledger {"start_time": 1704063600, "end_time": 1735686000}
+2025-04-07 23:51:07,105 - crypto_tax - INFO - [Kraken] Retrieved 19 cached ledger entries 
+2025-04-07 23:51:07,105 - crypto_tax - INFO - [Kraken API] Fetching ledger entries {"from": "2024-11-07"}
+2025-04-07 23:51:07,219 - crypto_tax - INFO - [Kraken API] Fetched 0 new ledger entries 
+2025-04-07 23:51:07,220 - crypto_tax - INFO - [Database] No entries to save to ledger 
+2025-04-07 23:51:07,231 - crypto_tax - INFO - [Export] Created CSV tax reports in export 
+2025-04-07 23:51:07,233 - crypto_tax - INFO - [Export] Created German format tax report: export/2024.csv 
+2025-04-07 23:51:07,233 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
+2025-04-07 23:51:07,234 - crypto_tax - INFO - [Export] Successfully exported tax report in csv format for year 2024 
+2025-04-07 23:53:18,461 - crypto_tax - INFO - [Setup] Ensured directory exists: logs 
+2025-04-07 23:53:18,461 - crypto_tax - INFO - [Setup] Ensured directory exists: export 
+2025-04-07 23:53:18,462 - crypto_tax - INFO - [Setup] Ensured directory exists: data 
+2025-04-07 23:53:18,462 - crypto_tax - INFO - [Start] Starting issue fixing process 
+2025-04-07 23:53:18,462 - crypto_tax - INFO - [CSVUnification] Skipped CSV delimiter unification 
+2025-04-07 23:53:18,462 - crypto_tax - ERROR - [SalesCheck] ERROR - FileNotFound: Report file not found: export/tax_report_2024.json 
+2025-04-07 23:53:18,462 - crypto_tax - INFO - [SalesCheck] No missing sales found for 2024 
+2025-04-07 23:53:18,462 - crypto_tax - INFO - [Complete] Issue fixing process completed successfully 
+2025-04-07 23:58:10,411 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2024-01-01", "end_date": "2025-01-01"}
+2025-04-07 23:58:10,412 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-07 23:58:10,412 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-07 23:58:10,412 - crypto_tax - INFO - [Database] Retrieved 0 entries from trades {"start_time": 1704063600, "end_time": 1735686000}
+2025-04-07 23:58:10,412 - crypto_tax - INFO - [Kraken] Retrieved 0 cached trades 
+2025-04-07 23:58:10,412 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2024-01-01"}
+2025-04-07 23:58:10,673 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-04-07 23:58:10,674 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-04-07 23:58:10,674 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2024-01-01", "end_date": "2025-01-01"}
+2025-04-07 23:58:10,675 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-04-07 23:58:10,676 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-04-07 23:58:10,676 - crypto_tax - INFO - [Database] Retrieved 19 entries from ledger {"start_time": 1704063600, "end_time": 1735686000}
+2025-04-07 23:58:10,676 - crypto_tax - INFO - [Kraken] Retrieved 19 cached ledger entries 
+2025-04-07 23:58:10,676 - crypto_tax - INFO - [Kraken API] Fetching ledger entries {"from": "2024-11-07"}
+2025-04-07 23:58:10,790 - crypto_tax - INFO - [Kraken API] Fetched 0 new ledger entries 
+2025-04-07 23:58:10,790 - crypto_tax - INFO - [Database] No entries to save to ledger 
+2025-04-07 23:58:10,793 - crypto_tax - INFO - [Export Error] Unknown export format: excel. Falling back to CSV. 
+2025-04-07 23:58:10,794 - crypto_tax - INFO - [Export] Created CSV tax reports in export 
+2025-04-07 23:58:10,795 - crypto_tax - INFO - [Export] Created German format tax report: export/2024.csv 
+2025-04-07 23:58:10,795 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
+2025-04-07 23:58:10,795 - crypto_tax - INFO - [Export] Successfully exported tax report in excel format for year 2024 

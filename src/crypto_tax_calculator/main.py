@@ -45,23 +45,10 @@ def parse_arguments() -> argparse.Namespace:
 
     return args
 
-def normalize_kraken_asset(kraken_asset: str) -> str:
-    """Converts Kraken's asset representation (e.g., XXBT, ZEUR) to a more standard form (e.g., BTC, EUR)."""
-    # Simple normalization, might need refinement based on all possible Kraken assets
-    asset_upper = kraken_asset.upper()
-    if asset_upper.startswith('X') and len(asset_upper) > 3:
-        return asset_upper[1:]
-    if asset_upper.startswith('Z') and len(asset_upper) > 3:
-        return asset_upper[1:]
-    # Handle specific cases like XBT -> BTC if needed
-    if asset_upper == 'XBT':
-        return 'BTC'
-    return asset_upper  # Return as is if no rule matches
-
 def is_fiat_currency(asset: str) -> bool:
     """Determines if an asset is a fiat currency."""
-    # Add more fiat currencies as needed
-    return asset.upper() in ['EUR', 'USD', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF']
+    # Kraken prefixes fiat currencies with 'Z'
+    return asset.upper() in ['ZEUR', 'ZUSD', 'ZGBP', 'ZJPY', 'ZCAD', 'ZAUD', 'ZCHF']
 
 def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: List[Dict[str, Any]], tax_year: int) -> List[TaxReportEntry]:
     """
@@ -100,11 +87,6 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
         # Identify and process crypto sales (including 'spend' transactions in Kraken ledger)
         if not is_fiat_currency(asset) and is_sale_transaction(raw_tx):
             # This is a crypto sale - keep processing
-            log_event("Processing: Processing crypto sale transaction: %s (%s %s)", refid, kraken_type, asset)
-        # Filter out non-taxable transactions
-        elif is_fiat_currency(asset) and kraken_type.lower() in ["spend", "withdrawal"]:
-            # Special case 1: EUR/fiat currency spend/withdrawals are not relevant for crypto tax
-            processed_refids.add(refid)
             log_event("Processing: Processing crypto sale transaction: %s (%s %s)", refid, kraken_type, asset)
         # Filter out non-taxable transactions
         elif is_fiat_currency(asset) and kraken_type.lower() in ["spend", "withdrawal"]:
@@ -159,12 +141,12 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
             # Add more pairs...
             else: asset_kraken = pair  # Fallback
 
-        # Normalize asset names
-        asset = normalize_kraken_asset(asset_kraken)
-        quote_asset = normalize_kraken_asset(quote_asset_kraken) if quote_asset_kraken else None
+        # Use original Kraken asset IDs
+        asset = asset_kraken
+        quote_asset = quote_asset_kraken
         # Fee asset needs determination (often the quote currency for trades)
         fee_asset_kraken = raw_tx.get("fee_currency", quote_asset_kraken if kraken_type in ['buy', 'sell'] else asset_kraken)  # Guess fee currency
-        fee_asset = normalize_kraken_asset(fee_asset_kraken) if fee_asset_kraken else None
+        fee_asset = fee_asset_kraken
 
         # Create Transaction object (mapping types comes later)
         tx = Transaction(
@@ -190,11 +172,11 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
             # Handle purchases - when amount is positive and it's a buy or deposit transaction
             if tx.amount > 0 and tx.kraken_type in ['buy', 'receive', 'deposit']:
                 # Special handling for EUR - always use price of 1.0
-                if tx.asset.upper() in ['EUR', 'ZEUR']:
+                if tx.asset.upper() == 'ZEUR':
                     price_eur = Decimal('1.0')
                 else:
                     # Get the price in EUR for non-EUR assets
-                    price_eur = tx.price if tx.price and tx.quote_asset == 'EUR' else get_historical_price_eur(tx.asset, tx.timestamp)
+                    price_eur = tx.price if tx.price and tx.quote_asset == 'ZEUR' else get_historical_price_eur(tx.asset, tx.timestamp)
                 
                 # Add purchase to FIFO calculator
                 fifo_calc.add_purchase(
@@ -254,8 +236,7 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
                         
                         # Only process transactions for this asset
                         asset_kraken = raw_tx.get("asset", raw_tx.get("pair", "").split('/')[0] if '/' in raw_tx.get("pair", "") else "UNKNOWN")
-                        asset = normalize_kraken_asset(asset_kraken)
-                        if asset != tx.asset:
+                        if asset_kraken != tx.asset:
                             continue
                         
                         # Process the transaction as before
@@ -287,11 +268,11 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
                             elif pair.endswith("USD"): asset_kraken, quote_asset_kraken = pair[:-3], "ZUSD"
                             else: asset_kraken = pair
                         
-                        # Normalize asset names
-                        asset = normalize_kraken_asset(asset_kraken)
-                        quote_asset = normalize_kraken_asset(quote_asset_kraken) if quote_asset_kraken else None
+                        # Use original Kraken asset IDs
+                        asset = asset_kraken
+                        quote_asset = quote_asset_kraken
                         fee_asset_kraken = raw_tx.get("fee_currency", quote_asset_kraken if kraken_type in ['buy', 'sell'] else asset_kraken)
-                        fee_asset = normalize_kraken_asset(fee_asset_kraken) if fee_asset_kraken else None
+                        fee_asset = fee_asset_kraken
                         
                         # Create Transaction object
                         additional_tx = Transaction(
@@ -315,11 +296,11 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
                     for additional_tx in additional_txs:
                         if additional_tx.amount > 0 and additional_tx.kraken_type in ['buy', 'receive', 'deposit']:
                             # Special handling for EUR - always use price of 1.0
-                            if additional_tx.asset.upper() in ['EUR', 'ZEUR']:
+                            if additional_tx.asset.upper() == 'ZEUR':
                                 price_eur = Decimal('1.0')
                             else:
                                 # Get the price in EUR for non-EUR assets
-                                price_eur = additional_tx.price if additional_tx.price and additional_tx.quote_asset == 'EUR' else get_historical_price_eur(additional_tx.asset, additional_tx.timestamp)
+                                price_eur = additional_tx.price if additional_tx.price and additional_tx.quote_asset == 'ZEUR' else get_historical_price_eur(additional_tx.asset, additional_tx.timestamp)
                             
                             # Add purchase to FIFO calculator
                             fifo_calc.add_purchase(
@@ -344,7 +325,7 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
             
             # Get the sale price in EUR
             sale_price_eur = Decimal(0)
-            if tx.price is not None and tx.price > 0 and tx.quote_asset == 'EUR':
+            if tx.price is not None and tx.price > 0 and tx.quote_asset == 'ZEUR':
                 # Use the price from the transaction if it's in EUR
                 sale_price_eur = tx.price
             elif tx.cost_or_proceeds is not None and tx.cost_or_proceeds > 0 and abs(tx.amount) > 0:
@@ -377,7 +358,23 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
                         raise ValueError(error_msg)
                     
                 disposal_cost_basis_eur = amount_used * lot.purchase_price_eur
-                disposal_gain_loss_eur = disposal_proceeds_eur - disposal_cost_basis_eur - tx.fee_amount
+                # Calculate fee in EUR
+                fee_in_eur = Decimal(0)
+                if tx.fee_amount > 0:
+                    if tx.fee_asset == 'ZEUR':
+                        fee_in_eur = tx.fee_amount
+                    else:
+                        # Try to get fee asset price in EUR
+                        fee_asset_price = get_historical_price_eur(tx.fee_asset, tx.timestamp)
+                        if fee_asset_price is not None:
+                            fee_in_eur = tx.fee_amount * fee_asset_price
+                
+                # Calculate proportional fee for this lot
+                lot_fee_proportion = amount_used / abs(tx.amount) if tx.amount != 0 else Decimal(0)
+                lot_fee_in_eur = fee_in_eur * lot_fee_proportion
+                
+                # Calculate gain/loss including fees
+                disposal_gain_loss_eur = disposal_proceeds_eur - disposal_cost_basis_eur - lot_fee_in_eur
                 
                 holding_period_days = (datetime.datetime.fromtimestamp(tx.timestamp, datetime.timezone.utc) - lot.purchase_datetime).days
                 matched_lots.append(MatchedLotInfo(

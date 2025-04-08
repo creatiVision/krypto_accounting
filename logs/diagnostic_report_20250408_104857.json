@@ -1,0 +1,85 @@
+{
+  "api_test": {
+    "success": 0,
+    "failure": 0,
+    "assets": {},
+    "error": "Price API dependencies not available"
+  },
+  "database": {
+    "status": "success",
+    "tables": {
+      "trades": {
+        "row_count": 8,
+        "columns": [
+          {
+            "name": "refid",
+            "type": "TEXT"
+          },
+          {
+            "name": "data_json",
+            "type": "TEXT"
+          },
+          {
+            "name": "timestamp",
+            "type": "INTEGER"
+          }
+        ],
+        "has_data": true
+      },
+      "ledger": {
+        "row_count": 40,
+        "columns": [
+          {
+            "name": "refid",
+            "type": "TEXT"
+          },
+          {
+            "name": "data_json",
+            "type": "TEXT"
+          },
+          {
+            "name": "timestamp",
+            "type": "INTEGER"
+          }
+        ],
+        "has_data": true
+      }
+    },
+    "errors": [],
+    "integrity_check": "ok"
+  },
+  "data_consistency": {
+    "assets": {
+      "ARB": {
+        "file_count": 3,
+        "valid_files": 0,
+        "invalid_files": 3,
+        "price_range": {}
+      }
+    },
+    "errors": [
+      "Data consistency check failed: 'min'"
+    ],
+    "warnings": [
+      "No price data found in data/price_cache/ARB_01-03-2025.json",
+      "No price data found in data/price_cache/ARB_23-05-2024.json",
+      "No price data found in data/price_cache/ARB_18-04-2023.json"
+    ]
+  },
+  "timestamp": "2025-04-08T10:48:57.758117",
+  "summary": {
+    "api_tests": {
+      "success": 0,
+      "failure": 0
+    },
+    "database": {
+      "status": "success",
+      "error_count": 0
+    },
+    "data_consistency": {
+      "asset_count": 1,
+      "error_count": 1,
+      "warning_count": 3
+    }
+  }
+}

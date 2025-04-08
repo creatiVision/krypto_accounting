@@ -43,6 +43,10 @@ class MatchedLotInfo:
     amount_used: Decimal = Decimal(0)
     cost_basis_eur: Decimal = Decimal(0)
     holding_period_days: int = 0
+    disposal_proceeds_eur: Decimal = Decimal(0)
+    disposal_cost_basis_eur: Decimal = Decimal(0)
+    disposal_gain_loss_eur: Decimal = Decimal(0)
+    disposal_fee_eur: Decimal = Decimal(0)
     
     @property
     def formatted_purchase_date(self) -> str:

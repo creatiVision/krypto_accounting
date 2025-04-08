@@ -6,3 +6,4 @@ google-auth-httplib2
 python-dotenv
 pycoingecko
 yfinance
+openpyxl
