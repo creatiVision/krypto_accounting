@@ -392,7 +392,7 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
                     disposal_proceeds_eur=disposal_proceeds_eur,
                     disposal_cost_basis_eur=disposal_cost_basis_eur,
                     disposal_gain_loss_eur=disposal_gain_loss_eur,
-                    disposal_fee_eur=tx.fee_amount * (amount_used / abs(tx.amount)) if tx.amount != 0 else Decimal(0)
+                    disposal_fee_eur=lot_fee_in_eur
                 ))
 
             tax_liability = calculate_tax_liability(tx, matched_lots)
