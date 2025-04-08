@@ -8,7 +8,7 @@ Manages holdings and calculates cost basis, gains/losses for disposals.
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal, getcontext
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Any
 
 # Set precision for Decimal calculations (important for crypto amounts)
 getcontext().prec = 18 # Sufficient for most crypto assets
@@ -55,7 +55,7 @@ class DisposalResult:
     total_proceeds_eur: Decimal
     total_cost_basis_eur: Decimal
     gain_loss_eur: Decimal
-    matched_lots: List[Tuple[HoldingLot, Decimal]] # List of (original_lot, amount_used_from_lot)
+    matched_lots: List[Dict[str, Any]] # List of detailed matched lots
     taxable_status: bool = False # True if any part held <= 1 year
     holding_period_days_avg: int = 0 # Average holding period (weighted?)
     notes: List[str] = field(default_factory=list) # Notes, warnings, errors
@@ -92,19 +92,82 @@ class FifoCalculator:
         self.holdings[asset_upper].sort(key=lambda x: x.purchase_timestamp)
         # log_event("FIFO Purchase", f"Added {amount} {asset_upper} @ {price_eur:.4f} EUR (Ref: {refid})") # Verbose
 
+    def _is_fiat_currency(self, asset: str) -> bool:
+        """Helper method to determine if an asset is a fiat currency."""
+        return asset.upper() in ['EUR', 'USD', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'ZEUR', 'ZUSD', 'ZGBP', 'ZJPY', 'ZCAD', 'ZAUD', 'ZCHF']
+
+    def _get_canonical_asset_name(self, asset: str) -> str:
+        """Determines the canonical asset name to use for storage."""
+        asset_upper = asset.upper()
+        
+        # Handle fiat currencies
+        if self._is_fiat_currency(asset_upper):
+            if asset_upper.startswith('Z'):
+                return asset_upper  # Keep Kraken format for fiat
+            return asset_upper  # Use as-is
+        
+        # Handle crypto assets
+        if asset_upper == 'XBT':
+            return 'BTC'  # Special case for Bitcoin
+        
+        if asset_upper.startswith('X') and len(asset_upper) > 1:
+            return asset_upper  # Keep Kraken format for crypto
+        
+        return asset_upper  # Use as-is
+
     def match_lots(self, asset: str, amount: Decimal, timestamp: int, refid: str) -> List[Tuple[HoldingLot, Decimal]]:
         """Matches lots using FIFO for a given disposal amount."""
         asset_upper = asset.upper()
         remaining_to_dispose = amount
         matched_lots: List[Tuple[HoldingLot, Decimal]] = []
+        
+        # Create a list of possible asset names to check
+        possible_asset_names = [asset_upper]
+        
+        # Add X-prefixed version if not already present (for crypto assets)
+        if not asset_upper.startswith('X') and not self._is_fiat_currency(asset_upper):
+            possible_asset_names.append('X' + asset_upper)
+        
+        # Add version without X prefix if it has one
+        if asset_upper.startswith('X') and len(asset_upper) > 1:
+            possible_asset_names.append(asset_upper[1:])
+        
+        # Special case for BTC/XBT
+        if asset_upper == 'BTC':
+            possible_asset_names.append('XBT')
+        elif asset_upper == 'XBT':
+            possible_asset_names.append('BTC')
+        
+        # For fiat currencies, check with Z prefix
+        if self._is_fiat_currency(asset_upper):
+            if not asset_upper.startswith('Z'):
+                possible_asset_names.append('Z' + asset_upper)
+            elif asset_upper.startswith('Z'):
+                possible_asset_names.append(asset_upper[1:])
+        
+        # Try to find holdings under any of the possible asset names
+        found_holdings = False
+        used_asset_name = None
+        
+        for asset_name in possible_asset_names:
+            if asset_name in self.holdings and self.holdings[asset_name]:
+                found_holdings = True
+                used_asset_name = asset_name
+                break
+        
+        if not found_holdings:
+            # Enhanced logging
+            holdings_keys = list(self.holdings.keys())
+            log_event("FIFO Error", f"Cannot match lots for {amount} {asset_upper} (Ref: {refid}) - No holdings available. Tried: {possible_asset_names}. Available holdings keys: {holdings_keys}")
+            return []
+        
+        # Log which asset name was used
+        log_event("FIFO Match", f"Matched {amount} {asset_upper} using holdings under '{used_asset_name}' (Ref: {refid})")
+        
         lots_to_remove_indices: List[int] = []
         partial_lot_update: Optional[Tuple[int, Decimal]] = None
 
-        if asset_upper not in self.holdings or not self.holdings[asset_upper]:
-            log_event("FIFO Error", f"Cannot match lots for {amount} {asset_upper} (Ref: {refid}) - No holdings available.")
-            return []
-
-        for idx, lot in enumerate(self.holdings[asset_upper]):
+        for idx, lot in enumerate(self.holdings[used_asset_name]):
             if remaining_to_dispose <= 0:
                 break
 
@@ -122,10 +185,10 @@ class FifoCalculator:
 
         if partial_lot_update:
             idx, remaining_amount = partial_lot_update
-            self.holdings[asset_upper][idx].amount = remaining_amount
+            self.holdings[used_asset_name][idx].amount = remaining_amount
 
         for idx in sorted(lots_to_remove_indices, reverse=True):
-            self.holdings[asset_upper].pop(idx)
+            self.holdings[used_asset_name].pop(idx)
 
         return matched_lots
 
@@ -147,15 +210,62 @@ class FifoCalculator:
 
         total_proceeds = amount * sale_price_eur
 
-        if asset_upper not in self.holdings or not self.holdings[asset_upper]:
-            notes.append(f"ERROR: No prior holdings found for {asset_upper} to cover disposal.")
-            log_event("FIFO Error", f"Cannot process disposal of {amount} {asset_upper} (Ref: {refid}) - No holdings available.")
+        # Create a list of possible asset names to check
+        possible_asset_names = [asset_upper]
+        
+        # Add X-prefixed version if not already present (for crypto assets)
+        if not asset_upper.startswith('X') and not self._is_fiat_currency(asset_upper):
+            possible_asset_names.append('X' + asset_upper)
+        
+        # Add version without X prefix if it has one
+        if asset_upper.startswith('X') and len(asset_upper) > 1:
+            possible_asset_names.append(asset_upper[1:])
+        
+        # Special case for BTC/XBT
+        if asset_upper == 'BTC':
+            possible_asset_names.append('XBT')
+        elif asset_upper == 'XBT':
+            possible_asset_names.append('BTC')
+        
+        # For fiat currencies, check with Z prefix
+        if self._is_fiat_currency(asset_upper):
+            if not asset_upper.startswith('Z'):
+                possible_asset_names.append('Z' + asset_upper)
+            elif asset_upper.startswith('Z'):
+                possible_asset_names.append(asset_upper[1:])
+        
+        # Try to find holdings under any of the possible asset names
+        found_holdings = False
+        used_asset_name = None
+        
+        for asset_name in possible_asset_names:
+            if asset_name in self.holdings and self.holdings[asset_name]:
+                found_holdings = True
+                used_asset_name = asset_name
+                break
+        
+        if not found_holdings:
+            # Enhanced logging
+            holdings_keys = list(self.holdings.keys())
+            notes.append(f"ERROR: No prior holdings found for {asset_upper} to cover disposal. Tried: {possible_asset_names}")
+            log_event("FIFO Error", f"Cannot process disposal of {amount} {asset_upper} (Ref: {refid}) - No holdings available. Tried: {possible_asset_names}. Available holdings keys: {holdings_keys}")
             return DisposalResult(
-                asset=asset_upper, disposed_amount=amount, sale_price_eur=sale_price_eur,
-                sale_timestamp=timestamp, sale_tx_refid=refid, fee_eur=fee_eur,
-                total_proceeds_eur=total_proceeds, total_cost_basis_eur=Decimal(0), gain_loss_eur=total_proceeds - fee_eur, # Treat cost basis as 0? Or mark as error?
-                matched_lots=[], notes=notes
+                asset=asset_upper, 
+                disposed_amount=amount, 
+                sale_price_eur=sale_price_eur,
+                sale_timestamp=timestamp, 
+                sale_tx_refid=refid, 
+                fee_eur=fee_eur,
+                total_proceeds_eur=total_proceeds, 
+                total_cost_basis_eur=Decimal(0), 
+                gain_loss_eur=total_proceeds - fee_eur,
+                matched_lots=[], 
+                notes=notes,
+                holding_period_days_avg=0  # No real holding period
             )
+
+        # Log which asset name was used
+        log_event("FIFO Disposal", f"Processing disposal of {amount} {asset_upper} using holdings under '{used_asset_name}' (Ref: {refid})")
 
         remaining_to_dispose = amount
         total_cost_basis = Decimal(0)
@@ -165,7 +275,7 @@ class FifoCalculator:
         holding_periods_weighted: List[Tuple[int, Decimal]] = [] # (days, amount)
 
         # Iterate through sorted holdings (FIFO)
-        for idx, lot in enumerate(self.holdings[asset_upper]):
+        for idx, lot in enumerate(self.holdings[used_asset_name]):
             if remaining_to_dispose <= 0:
                 break
 
@@ -177,7 +287,12 @@ class FifoCalculator:
             holding_period_days = (disposal_datetime - lot.purchase_datetime).days
             holding_periods_weighted.append((holding_period_days, amount_from_this_lot))
             
-            matched_lots_details.append((lot, amount_from_this_lot))
+            matched_lots_details.append({
+                "lot": lot,
+                "amount_used": amount_from_this_lot,
+                "kaufdatum": lot.purchase_date_str,
+                "kaufpreis": lot.purchase_price_eur
+            })
             
             remaining_to_dispose -= amount_from_this_lot
             remaining_in_lot = lot.amount - amount_from_this_lot
@@ -191,11 +306,11 @@ class FifoCalculator:
         # Update holdings: Apply partial lot update if any
         if partial_lot_update:
             idx, remaining_amount = partial_lot_update
-            self.holdings[asset_upper][idx].amount = remaining_amount
+            self.holdings[used_asset_name][idx].amount = remaining_amount
         
         # Remove fully used lots (in reverse order to not affect indices)
         for idx in sorted(lots_to_remove_indices, reverse=True):
-            self.holdings[asset_upper].pop(idx)
+            self.holdings[used_asset_name].pop(idx)
         
         # Verify we've matched all the disposal amount
         if remaining_to_dispose > Decimal('1e-12'):  # More than epsilon
