@@ -152,6 +152,80 @@ python -m src.crypto_tax_calculator.main
 
 The output files will be generated in the selected output directory (default: `export/`). A summary will also be printed to the console.
 
+## Export Formats
+
+The application supports multiple export formats to accommodate different use cases:
+
+### CSV Export (Default)
+
+The default export format generates CSV files that are compatible with most spreadsheet applications:
+- `krypto_steuer_YYYY.csv`: Detailed transaction list for the tax year
+- `fifo_nachweis_YYYY.txt`: Text file documenting the FIFO calculations for disposals
+
+### JSON Export
+
+For programmatic access or integration with other systems, the application can export data in JSON format:
+
+```bash
+# Using the export_as_json.py utility
+python export_as_json.py --tax-year 2024 --output-dir export/
+```
+
+The JSON export includes:
+- Complete tax summary (gains, losses, income)
+- Detailed transaction entries
+- FIFO calculation details (matched lots)
+- Holding period information
+
+This format is particularly useful for:
+- Importing into custom analysis tools
+- Integration with tax software
+- Data visualization applications
+- Long-term archiving in a structured format
+
+## Maintenance Utilities
+
+The application includes several utility scripts to help maintain the system:
+
+### Cache Management
+
+```bash
+# Flush the price cache only
+python flush_cache.py
+
+# Flush all caches and database
+./flush_all.sh
+
+# Remove test data
+./remove_test_data.sh
+```
+
+These utilities are useful for:
+- Clearing cached price data to force fresh API requests
+- Resetting the Kraken API cache database
+- Removing test data before production use
+- Troubleshooting data inconsistencies
+
+## Diagnostic Tools
+
+The application includes a comprehensive diagnostic system to help identify and resolve issues:
+
+```bash
+# Run full diagnostics
+python diagnostic.py
+
+# Run specific diagnostic tests
+python diagnostic.py --skip-api --assets BTC ETH
+```
+
+The diagnostic tool performs:
+1. **API Connection Tests**: Verifies connectivity to price APIs
+2. **Database Integrity Checks**: Validates the structure and integrity of the cache database
+3. **Data Consistency Validation**: Checks for inconsistencies in cached price data
+4. **Performance Monitoring**: Measures and reports on API response times
+
+A detailed diagnostic report is generated in JSON format in the `logs/` directory, providing a comprehensive overview of the system's health.
+
 ## Disclaimer
 
 This tool is provided for informational purposes only and does not constitute tax advice. Tax laws are complex and subject to change. Always consult with a qualified tax professional for advice specific to your situation. The accuracy of the calculations depends on the completeness and correctness of the data provided by the Kraken API and the CoinGecko API.
