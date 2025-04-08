@@ -150,3 +150,7 @@ echo -e "Log file: ${YELLOW}$LOG_FILE${NC}"
 
 # Deactivate the virtual environment
 deactivate
+echo -e "${GREEN}Virtual environment deactivated.${NC}"
+
+# Exit the script
+exit 0
