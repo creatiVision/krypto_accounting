@@ -291,15 +291,15 @@ def fetch_kraken_data(endpoint: str, params: Dict[str, Any], api_key: str, api_s
         print("-" * 30)
     return all_data
 
-def get_trades(api_key: str, api_secret: str, start_time: int, end_time: int) -> List[Dict[str, Any]]:
+def get_trades(api_key: str, api_secret: str, start_time: int, end_time: int, is_recovery_call: bool = False) -> List[Dict[str, Any]]:
     """Fetch trade data from Kraken API."""
     params = {"start": start_time, "end": end_time, "trades": "true"} # trads=true might be needed? Check docs.
-    return fetch_kraken_data('/0/private/TradesHistory', params, api_key, api_secret)
+    return fetch_kraken_data('/0/private/TradesHistory', params, api_key, api_secret, is_recovery_call)
 
-def get_ledger(api_key: str, api_secret: str, start_time: int, end_time: int) -> List[Dict[str, Any]]:
+def get_ledger(api_key: str, api_secret: str, start_time: int, end_time: int, is_recovery_call: bool = False) -> List[Dict[str, Any]]:
     """Fetch ledger entries from Kraken API."""
     params = {"start": start_time, "end": end_time, "type": "all"}
-    return fetch_kraken_data('/0/private/Ledgers', params, api_key, api_secret)
+    return fetch_kraken_data('/0/private/Ledgers', params, api_key, api_secret, is_recovery_call)
 
 def get_kraken_ohlc(pair: str, interval: int = 1440, since: Optional[int] = None) -> List[List]:
      """Fetch OHLC data from Kraken public API."""

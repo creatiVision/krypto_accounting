@@ -2,35 +2,39 @@ INFO:root:Data Retrieval: Fetching data from 2020-01-01 to 2025-01-01
 INFO:crypto_tax:[Kraken] Retrieving trades {"start_date": "2020-01-01", "end_date": "2025-01-01"}
 INFO:crypto_tax:[Database] Connection opened to Kraken cache database 
 INFO:crypto_tax:[Database] Connection closed to Kraken cache database 
-INFO:crypto_tax:[Database] Retrieved 0 entries from trades {"start_time": 1577833200, "end_time": 1735686000}
-INFO:crypto_tax:[Kraken] Retrieved 0 cached trades 
-INFO:crypto_tax:[Kraken API] Fetching trades {"from": "2020-01-01"}
-INFO:crypto_tax:[API] [2025-04-08 23:04:27.395] Requesting token for /0/private/TradesHistory 
-INFO:crypto_tax:[API] [2025-04-08 23:04:27.395] Got token for /0/private/TradesHistory 
-INFO:crypto_tax:[API] [2025-04-08 23:04:27.589] Received response for /0/private/TradesHistory 
-INFO:crypto_tax:[API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744146267395655", "ofs": 0, "start": 1577833200, "end": 1735686000, "trades": "true"}, "response_code": 200, "duration_ms": 193.59374046325684}
-INFO:crypto_tax:[Kraken API] Fetched 5 new trades 
-INFO:crypto_tax:[Database] Connection opened to Kraken cache database 
-INFO:crypto_tax:[Database] Connection closed to Kraken cache database 
-INFO:crypto_tax:[Database] Saved 5 entries to trades {"total_entries": 5}
+INFO:crypto_tax:[Database] Retrieved 5 entries from trades {"start_time": 1577833200, "end_time": 1735686000}
+INFO:crypto_tax:[Kraken] Retrieved 5 cached trades 
+INFO:crypto_tax:[Kraken API] Fetching trades {"from": "2023-08-14"}
+ERROR: [Kraken API] ERROR - FetchError: Failed to fetch trades | Exception: TypeError: get_trades() takes 4 positional arguments but 5 were given 
+ERROR:crypto_tax:[Kraken API] ERROR - FetchError: Failed to fetch trades | Exception: TypeError: get_trades() takes 4 positional arguments but 5 were given 
+ERROR: [Kraken API] Traceback: Traceback (most recent call last):
+  File "/home/mb/skripts/skripts-py/accounting_kryptos/src/crypto_tax_calculator/kraken_cache.py", line 217, in get_trades
+    fetched = api_get_trades(api_key, api_secret, fetch_start, end_time, is_recovery_call)
+TypeError: get_trades() takes 4 positional arguments but 5 were given
+
+ERROR:crypto_tax:[Kraken API] Traceback: Traceback (most recent call last):
+  File "/home/mb/skripts/skripts-py/accounting_kryptos/src/crypto_tax_calculator/kraken_cache.py", line 217, in get_trades
+    fetched = api_get_trades(api_key, api_secret, fetch_start, end_time, is_recovery_call)
+TypeError: get_trades() takes 4 positional arguments but 5 were given
+
 INFO:crypto_tax:[Kraken] Retrieving ledger entries {"start_date": "2020-01-01", "end_date": "2025-01-01"}
 INFO:crypto_tax:[Database] Connection opened to Kraken cache database 
 INFO:crypto_tax:[Database] Connection closed to Kraken cache database 
-INFO:crypto_tax:[Database] Retrieved 0 entries from ledger {"start_time": 1577833200, "end_time": 1735686000}
-INFO:crypto_tax:[Kraken] Retrieved 0 cached ledger entries 
-INFO:crypto_tax:[Kraken API] Fetching ledger entries {"from": "2020-01-01"}
-INFO:crypto_tax:[API] [2025-04-08 23:04:27.607] Requesting token for /0/private/Ledgers 
-INFO:crypto_tax:[API] [2025-04-08 23:04:27.607] Got token for /0/private/Ledgers 
-INFO:crypto_tax:[API] [2025-04-08 23:04:27.812] Received response for /0/private/Ledgers 
-INFO:crypto_tax:[API] API call to Kraken - /0/private/Ledgers {"method": "POST", "endpoint": "/0/private/Ledgers", "success": true, "params": {"nonce": "1744146267607798", "ofs": 0, "start": 1577833200, "end": 1735686000, "type": "all"}, "response_code": 200, "duration_ms": 204.06389236450195}
-INFO:crypto_tax:[API] [2025-04-08 23:04:28.380] Requesting token for /0/private/Ledgers 
-INFO:crypto_tax:[API] [2025-04-08 23:04:28.380] Got token for /0/private/Ledgers 
-INFO:crypto_tax:[API] [2025-04-08 23:04:28.688] Received response for /0/private/Ledgers 
-INFO:crypto_tax:[API] API call to Kraken - /0/private/Ledgers {"method": "POST", "endpoint": "/0/private/Ledgers", "success": true, "params": {"nonce": "1744146268380333", "ofs": 50, "start": 1577833200, "end": 1735686000, "type": "all"}, "response_code": 200, "duration_ms": 307.2035312652588}
-INFO:crypto_tax:[Kraken API] Fetched 53 new ledger entries 
-INFO:crypto_tax:[Database] Connection opened to Kraken cache database 
-INFO:crypto_tax:[Database] Connection closed to Kraken cache database 
-INFO:crypto_tax:[Database] Saved 53 entries to ledger {"total_entries": 53}
+INFO:crypto_tax:[Database] Retrieved 53 entries from ledger {"start_time": 1577833200, "end_time": 1735686000}
+INFO:crypto_tax:[Kraken] Retrieved 53 cached ledger entries 
+INFO:crypto_tax:[Kraken API] Fetching ledger entries {"from": "2024-11-07"}
+ERROR: [Kraken API] ERROR - FetchError: Failed to fetch ledger entries | Exception: TypeError: get_ledger() takes 4 positional arguments but 5 were given 
+ERROR:crypto_tax:[Kraken API] ERROR - FetchError: Failed to fetch ledger entries | Exception: TypeError: get_ledger() takes 4 positional arguments but 5 were given 
+ERROR: [Kraken API] Traceback: Traceback (most recent call last):
+  File "/home/mb/skripts/skripts-py/accounting_kryptos/src/crypto_tax_calculator/kraken_cache.py", line 288, in get_ledger
+    fetched = api_get_ledger(api_key, api_secret, fetch_start, end_time, is_recovery_call)
+TypeError: get_ledger() takes 4 positional arguments but 5 were given
+
+ERROR:crypto_tax:[Kraken API] Traceback: Traceback (most recent call last):
+  File "/home/mb/skripts/skripts-py/accounting_kryptos/src/crypto_tax_calculator/kraken_cache.py", line 288, in get_ledger
+    fetched = api_get_ledger(api_key, api_secret, fetch_start, end_time, is_recovery_call)
+TypeError: get_ledger() takes 4 positional arguments but 5 were given
+
 INFO:root:Data Retrieval: Retrieved 5 trades and 53 ledger entries
 INFO:root:Processing: Starting transaction processing for tax year 2024...
 INFO:root:Processing: Sorted 58 raw transactions.
@@ -77,111 +81,21 @@ INFO:root:Skipping fiat payment transaction: LSCR53-KBGXA-LOXMTZ (withdrawal ZEU
 INFO:root:Skipping fiat currency transaction: LF3GSP-ZRZDD-IHDXNY (deposit ZEUR)
 INFO:root:Skipping fiat payment transaction: LBQTJ4-2NOQ4-OKEWN6 (spend ZEUR)
 INFO:root:Processing: First pass - Adding purchases to FIFO calculator
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for XETH on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 19-04-2022", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:28.707] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:28.707] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:28.935] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ETHEUR", "interval": 1440, "since": 1650326400}, "response_code": 200, "duration_ms": 227.22363471984863}
-INFO:crypto_tax:[API] API call to CoinGecko - Fetching price for XETH on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 19-04-2022", "success": true}
-WARNING: [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for XETH on 19-04-2022 - exceeds 365 day limit for free API 
-WARNING:crypto_tax:[Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for XETH on 19-04-2022 - exceeds 365 day limit for free API 
-INFO:crypto_tax:[API] API call to Yahoo Finance - Fetching price for XETH on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 19-04-2022", "success": true}
-INFO:crypto_tax:[Price] Got Yahoo Finance price for XETH on 19-04-2022: 2875.37109375 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for ADA on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 19-04-2022", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:29.293] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:29.293] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:29.556] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ADAEUR", "interval": 1440, "since": 1650326400}, "response_code": 200, "duration_ms": 262.3021602630615}
-INFO:crypto_tax:[API] API call to CoinGecko - Fetching price for ADA on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 19-04-2022", "success": true}
-WARNING: [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for ADA on 19-04-2022 - exceeds 365 day limit for free API 
-WARNING:crypto_tax:[Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for ADA on 19-04-2022 - exceeds 365 day limit for free API 
-INFO:crypto_tax:[API] API call to Yahoo Finance - Fetching price for ADA on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 19-04-2022", "success": true}
-INFO:crypto_tax:[Price] Got Yahoo Finance price for ADA on 19-04-2022: 0.8830839991569519 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for SOL on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for SOL on 19-04-2022", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:29.627] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:29.627] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:29.858] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "SOLEUR", "interval": 1440, "since": 1650326400}, "response_code": 200, "duration_ms": 230.16929626464844}
-INFO:crypto_tax:[API] API call to CoinGecko - Fetching price for SOL on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for SOL on 19-04-2022", "success": true}
-WARNING: [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for SOL on 19-04-2022 - exceeds 365 day limit for free API 
-WARNING:crypto_tax:[Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for SOL on 19-04-2022 - exceeds 365 day limit for free API 
-INFO:crypto_tax:[API] API call to Yahoo Finance - Fetching price for SOL on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for SOL on 19-04-2022", "success": true}
-INFO:crypto_tax:[Price] Got Yahoo Finance price for SOL on 19-04-2022: 100.58084106445312 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for XETH on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 28-12-2022", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:29.938] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:29.938] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.151] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ETHEUR", "interval": 1440, "since": 1672185600}, "response_code": 200, "duration_ms": 213.69433403015137}
-INFO:crypto_tax:[API] API call to CoinGecko - Fetching price for XETH on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 28-12-2022", "success": true}
-WARNING: [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for XETH on 28-12-2022 - exceeds 365 day limit for free API 
-WARNING:crypto_tax:[Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for XETH on 28-12-2022 - exceeds 365 day limit for free API 
-INFO:crypto_tax:[API] API call to Yahoo Finance - Fetching price for XETH on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 28-12-2022", "success": true}
-INFO:crypto_tax:[Price] Got Yahoo Finance price for XETH on 28-12-2022: 1119.576904296875 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for ADA on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 28-12-2022", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.223] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.223] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.464] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ADAEUR", "interval": 1440, "since": 1672185600}, "response_code": 200, "duration_ms": 240.85068702697754}
-INFO:crypto_tax:[API] API call to CoinGecko - Fetching price for ADA on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 28-12-2022", "success": true}
-WARNING: [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for ADA on 28-12-2022 - exceeds 365 day limit for free API 
-WARNING:crypto_tax:[Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for ADA on 28-12-2022 - exceeds 365 day limit for free API 
-INFO:crypto_tax:[API] API call to Yahoo Finance - Fetching price for ADA on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 28-12-2022", "success": true}
-INFO:crypto_tax:[Price] Got Yahoo Finance price for ADA on 28-12-2022: 0.23368200659751892 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for MATIC on 20-04-2023 {"method": "GET", "endpoint": "Fetching price for MATIC on 20-04-2023", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.533] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.533] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.747] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "MATICEUR", "interval": 1440, "since": 1681948800}, "response_code": 200, "duration_ms": 214.19930458068848}
-INFO:crypto_tax:[Price] Got Kraken price for MATIC on 20-04-2023: 0.9210 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for AVAX on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for AVAX on 24-04-2023", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.749] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.749] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.960] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "AVAXEUR", "interval": 1440, "since": 1682294400}, "response_code": 200, "duration_ms": 210.83307266235352}
-INFO:crypto_tax:[Price] Got Kraken price for AVAX on 24-04-2023: 16.10 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.961] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:30.961] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:31.180] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ARBEUR", "interval": 1440, "since": 1682294400}, "response_code": 200, "duration_ms": 218.95694732666016}
-INFO:crypto_tax:[Price] Got Kraken price for ARB on 24-04-2023: 1.2577 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for APT on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for APT on 24-04-2023", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:31.184] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:31.184] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:31.412] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "APTEUR", "interval": 1440, "since": 1682294400}, "response_code": 200, "duration_ms": 228.10721397399902}
-INFO:crypto_tax:[Price] Got Kraken price for APT on 24-04-2023: 9.4119 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for XETH on 06-11-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 06-11-2024", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:31.413] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:31.413] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:31.639] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ETHEUR", "interval": 1440, "since": 1730851200}, "response_code": 200, "duration_ms": 225.34751892089844}
-INFO:crypto_tax:[API] API call to CoinGecko - Fetching price for XETH on 06-11-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 06-11-2024", "success": true}
-INFO:crypto_tax:[Price] Got CoinGecko price for XETH on 06-11-2024: 2216.2975932743243 EUR 
+INFO:crypto_tax:[Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+INFO:crypto_tax:[Price] Using cached price for ADA on 19-04-2022: 0.8830839991569519 EUR 
+INFO:crypto_tax:[Price] Using cached price for SOL on 19-04-2022: 100.58084106445312 EUR 
+INFO:crypto_tax:[Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+INFO:crypto_tax:[Price] Using cached price for ADA on 28-12-2022: 0.23368200659751892 EUR 
+INFO:crypto_tax:[Price] Using cached price for MATIC on 20-04-2023: 0.9210 EUR 
+INFO:crypto_tax:[Price] Using cached price for AVAX on 24-04-2023: 16.10 EUR 
+INFO:crypto_tax:[Price] Using cached price for ARB on 24-04-2023: 1.2577 EUR 
+INFO:crypto_tax:[Price] Using cached price for APT on 24-04-2023: 9.4119 EUR 
+INFO:crypto_tax:[Price] Using cached price for XETH on 06-11-2024: 2216.2975932743243 EUR 
 INFO:root:Processing: Added 15 purchases to FIFO calculator
 INFO:root:Processing: Second pass - Processing sales
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for XETH on 04-01-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 04-01-2024", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:32.180] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:32.180] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:32.409] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ETHEUR", "interval": 1440, "since": 1704326400}, "response_code": 200, "duration_ms": 228.96742820739746}
-INFO:crypto_tax:[API] API call to CoinGecko - Fetching price for XETH on 04-01-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 04-01-2024", "success": true}
-WARNING: [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for XETH on 04-01-2024 - exceeds 365 day limit for free API 
-WARNING:crypto_tax:[Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for XETH on 04-01-2024 - exceeds 365 day limit for free API 
-INFO:crypto_tax:[API] API call to Yahoo Finance - Fetching price for XETH on 04-01-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 04-01-2024", "success": true}
-INFO:crypto_tax:[Price] Got Yahoo Finance price for XETH on 04-01-2024: 2023.3577880859375 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for ADA on 10-01-2024 {"method": "GET", "endpoint": "Fetching price for ADA on 10-01-2024", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:32.479] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:32.479] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:32.708] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ADAEUR", "interval": 1440, "since": 1704844800}, "response_code": 200, "duration_ms": 228.64651679992676}
-INFO:crypto_tax:[Price] Got Kraken price for ADA on 10-01-2024: 0.530188 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for AVAX on 09-05-2024 {"method": "GET", "endpoint": "Fetching price for AVAX on 09-05-2024", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:32.709] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:32.709] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:32.913] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "AVAXEUR", "interval": 1440, "since": 1715212800}, "response_code": 200, "duration_ms": 203.5524845123291}
-INFO:crypto_tax:[Price] Got Kraken price for AVAX on 09-05-2024: 31.37 EUR 
+INFO:crypto_tax:[Price] Using cached price for XETH on 04-01-2024: 2023.3577880859375 EUR 
+INFO:crypto_tax:[Price] Using cached price for ADA on 10-01-2024: 0.530188 EUR 
+INFO:crypto_tax:[Price] Using cached price for AVAX on 09-05-2024: 31.37 EUR 
 INFO:root:FIFO Error: Cannot match lots for 0.4516100000 XETH (Ref: LJC3TF-S3X4H-G6MWWN) - Attempting to fetch more data
 INFO:root:Fetching all trades for XETH from 2010-01-01
 INFO:crypto_tax:[Kraken] Retrieving trades {"start_date": "2010-01-01", "end_date": "2024-05-23"}
@@ -190,12 +104,18 @@ INFO:crypto_tax:[Database] Connection closed to Kraken cache database
 INFO:crypto_tax:[Database] Retrieved 5 entries from trades {"start_time": 1262300400, "end_time": 1716488247}
 INFO:crypto_tax:[Kraken] Retrieved 5 cached trades 
 INFO:crypto_tax:[Kraken API] Fetching trades {"from": "2023-08-14"}
-INFO:crypto_tax:[API] [2025-04-08 23:04:32.915] Requesting token for /0/private/TradesHistory 
-INFO:crypto_tax:[API] [2025-04-08 23:04:32.915] Got token for /0/private/TradesHistory 
-INFO:crypto_tax:[API] [2025-04-08 23:04:33.035] Received response for /0/private/TradesHistory 
-INFO:crypto_tax:[API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1744146272915276", "ofs": 0, "start": 1692023149, "end": 1716488247, "trades": "true"}, "response_code": 200, "duration_ms": 119.7500228881836}
-INFO:crypto_tax:[Kraken API] Fetched 0 new trades 
-INFO:crypto_tax:[Database] No entries to save to trades 
+ERROR: [Kraken API] ERROR - FetchError: Failed to fetch trades | Exception: TypeError: get_trades() takes 4 positional arguments but 5 were given 
+ERROR:crypto_tax:[Kraken API] ERROR - FetchError: Failed to fetch trades | Exception: TypeError: get_trades() takes 4 positional arguments but 5 were given 
+ERROR: [Kraken API] Traceback: Traceback (most recent call last):
+  File "/home/mb/skripts/skripts-py/accounting_kryptos/src/crypto_tax_calculator/kraken_cache.py", line 217, in get_trades
+    fetched = api_get_trades(api_key, api_secret, fetch_start, end_time, is_recovery_call)
+TypeError: get_trades() takes 4 positional arguments but 5 were given
+
+ERROR:crypto_tax:[Kraken API] Traceback: Traceback (most recent call last):
+  File "/home/mb/skripts/skripts-py/accounting_kryptos/src/crypto_tax_calculator/kraken_cache.py", line 217, in get_trades
+    fetched = api_get_trades(api_key, api_secret, fetch_start, end_time, is_recovery_call)
+TypeError: get_trades() takes 4 positional arguments but 5 were given
+
 INFO:root:Fetching all ledger entries for XETH from 2010-01-01
 INFO:crypto_tax:[Kraken] Retrieving ledger entries {"start_date": "2010-01-01", "end_date": "2024-05-23"}
 INFO:crypto_tax:[Database] Connection opened to Kraken cache database 
@@ -207,63 +127,20 @@ INFO:crypto_tax:[Price] Using cached price for XETH on 19-04-2022: 2875.37109375
 INFO:root:Added additional purchase: 0.1194286700 XETH at 2875.37109375 EUR
 INFO:crypto_tax:[Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
 INFO:root:Added additional purchase: 0.4832533000 XETH at 1119.576904296875 EUR
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for XETH on 23-05-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 23-05-2024", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:33.037] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:33.037] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:33.481] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ETHEUR", "interval": 1440, "since": 1716422400}, "response_code": 200, "duration_ms": 443.6912536621094}
-INFO:crypto_tax:[API] API call to CoinGecko - Fetching price for XETH on 23-05-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 23-05-2024", "success": true}
-INFO:crypto_tax:[Price] Got CoinGecko price for XETH on 23-05-2024: 3456.899841048827 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for ADA on 23-05-2024 {"method": "GET", "endpoint": "Fetching price for ADA on 23-05-2024", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:33.682] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:33.682] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:33.884] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ADAEUR", "interval": 1440, "since": 1716422400}, "response_code": 200, "duration_ms": 202.16751098632812}
-INFO:crypto_tax:[Price] Got Kraken price for ADA on 23-05-2024: 0.424228 EUR 
-INFO:crypto_tax:[API] API call to Kraken - Fetching price for ARB on 23-05-2024 {"method": "GET", "endpoint": "Fetching price for ARB on 23-05-2024", "success": true}
-INFO:crypto_tax:[API] [2025-04-08 23:04:33.886] Requesting token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:33.886] Got token for /0/public/OHLC 
-INFO:crypto_tax:[API] [2025-04-08 23:04:34.095] Received response for /0/public/OHLC 
-INFO:crypto_tax:[API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ARBEUR", "interval": 1440, "since": 1716422400}, "response_code": 200, "duration_ms": 209.3944549560547}
-INFO:crypto_tax:[Price] Got Kraken price for ARB on 23-05-2024: 1.0688 EUR 
+INFO:crypto_tax:[Price] Using cached price for XETH on 23-05-2024: 3456.899841048827 EUR 
+INFO:crypto_tax:[Price] Using cached price for ADA on 23-05-2024: 0.424228 EUR 
+INFO:crypto_tax:[Price] Using cached price for ARB on 23-05-2024: 1.0688 EUR 
 INFO:crypto_tax:[Export] Created German format tax report: export/krypto_steuer_2024.csv 
 INFO:crypto_tax:[Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
 INFO:crypto_tax:[Export] Successfully exported tax report in German format for year 2024 
 INFO:root:Summary: Total tax liability for 2024: -3046.84937583567150 EUR
 INFO:root:Summary: Total profit/loss for 2024: 1597.29496708000594 EUR
 INFO:root:Export: Tax report exported to: export/krypto_steuer_2024.csv
-Database initialized at /home/mb/skripts/skripts-py/accounting_kryptos/src/crypto_tax_calculator/../../data/kraken_cache.db
-Fetching trades from Kraken...
-Received 5 trades entries in this batch.
-Received fewer trades than the limit, ending pagination.
-Total trades found: 5
-------------------------------
-Fetching ledger from Kraken...
-Received 50 ledger entries in this batch.
-Received 3 ledger entries in this batch.
-Received fewer ledger than the limit, ending pagination.
-Total ledger found: 53
-------------------------------
 [LOG] FIFO Init: FifoCalculator initialized.
 [LOG] FIFO Match: Matched 1.0000000000 XETH using holdings under 'XETH' (Ref: LINGB3-WZ2QZ-PLQWZ5)
 [LOG] FIFO Match: Matched 1356.25396900 ADA using holdings under 'ADA' (Ref: LEVU23-MZZJG-Q4VLVQ)
 [LOG] FIFO Match: Matched 15.8497700000 AVAX using holdings under 'AVAX' (Ref: LU4N27-QT7QR-US5PBA)
 [LOG] FIFO Error: Cannot match lots for 0.4516100000 XETH (Ref: LJC3TF-S3X4H-G6MWWN) - No holdings available. Tried: ['XETH', 'ETH']. Available holdings keys: ['XETH', 'ADA', 'SOL', 'XETHZ', 'ARB', 'MATIC', 'AVAX', 'APT']
-Fetching trades from Kraken...
-Received 0 trades entries in this batch.
-No more trades found.
-Total trades found: 0
-WARNING: No trades were found for the specified parameters.
-Please verify your API keys and date range.
-------------------------------
 [LOG] FIFO Match: Matched 0.4516100000 XETH using holdings under 'XETH' (Ref: LJC3TF-S3X4H-G6MWWN)
 [LOG] FIFO Match: Matched 452.08465700 ADA using holdings under 'ADA' (Ref: LL3RIA-PCIBK-57YB77)
 [LOG] FIFO Match: Matched 172.56000 ARB using holdings under 'ARB' (Ref: LLUIJV-CZIDY-N4VJ3N)
- for /0/public/OHLC 
-2025-04-08 23:04:33,886 - crypto_tax - INFO - [API] [2025-04-08 23:04:33.886] Got token for /0/public/OHLC 
-2025-04-08 23:04:34,095 - crypto_tax - INFO - [API] [2025-04-08 23:04:34.095] Received response for /0/public/OHLC 
-2025-04-08 23:04:34,095 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ARBEUR", "interval": 1440, "since": 1716422400}, "response_code": 200, "duration_ms": 209.3944549560547}
-2025-04-08 23:04:34,096 - crypto_tax - INFO - [Price] Got Kraken price for ARB on 23-05-2024: 1.0688 EUR 
-2025-04-08 23:04:34,098 - crypto_tax - INFO - [Export] Created German format tax report: export/krypto_steuer_2024.csv 
-2025-04-08 23:04:34,099 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
-2025-04-08 23:04:34,099 - crypto_tax - INFO - [Export] Successfully exported tax report in German format for year 2024 

@@ -1,3 +1,4 @@
+
 """
 Handles tax report generation and export functionality.
 Supports various export formats including CSV, Excel and JSON.
@@ -441,22 +442,31 @@ def export_as_year_csv(
             # Calculate total proceeds, costs, and fees
             total_proceeds = Decimal(0)
             total_costs = Decimal(0)
-            total_fees = Decimal(0)
+            total_sell_fees = Decimal(0)
+            total_buy_fees = Decimal(0)
             
             for entry in summary.tax_report_entries:
                 entry_date = datetime.fromtimestamp(entry.timestamp)
                 if entry_date.year == tax_year:
                     total_proceeds += entry.disposal_proceeds_eur or Decimal(0)
                     total_costs += entry.disposal_cost_basis_eur or Decimal(0)
-                    total_fees += entry.disposal_fee_eur or Decimal(0)
+                    # Sum sell fees from sales
+                    total_sell_fees += entry.disposal_fee_eur or Decimal(0)
+                    # Sum buy fees from matched lots (acquisition side)
+                    if entry.matched_lots:
+                        for lot in entry.matched_lots:
+                            total_buy_fees += lot.disposal_fee_eur or Decimal(0)
             
-            # Calculate net profit/loss
-            net_amount = total_proceeds - total_costs - total_fees
+            total_fees = total_sell_fees + total_buy_fees
+            # Calculate net profit/loss (subtract only sell fees)
+            net_amount = total_proceeds - total_costs - total_sell_fees
             
             writer.writerow(["Private Veräußerungsgeschäfte (§23 EStG):"])
             writer.writerow(["Verkaufserlös:", str(total_proceeds)])
             writer.writerow(["Einkaufskosten:", str(total_costs)])
-            writer.writerow(["Gebühren:", str(total_fees)])
+            writer.writerow(["Verkaufsgebühren:", str(total_sell_fees)])
+            writer.writerow(["Anschaffungsgebühren:", str(total_buy_fees)])
+            writer.writerow(["Gesamtgebühren:", str(total_fees)])
             if net_amount >= 0:
                 writer.writerow(["Gesamtgewinn (§23):", str(net_amount)])
             else:
