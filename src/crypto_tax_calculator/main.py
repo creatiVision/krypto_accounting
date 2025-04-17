@@ -460,8 +460,56 @@ def main() -> None:
 
     log_event(f"Data Retrieval: Retrieved {len(kraken_trades)} trades and {len(kraken_ledger)} ledger entries")
 
+    # Build ledger fee map
+    ledger_fee_map = {}
+    for ledger in kraken_ledger:
+        refid = ledger.get("refid")
+        fee_str = ledger.get("fee", "0")
+        asset = ledger.get("asset", "ZEUR")
+        try:
+            fee = Decimal(fee_str)
+        except:
+            fee = Decimal(0)
+        if refid and fee > 0:
+            # Convert fee to EUR if needed
+            if asset == "ZEUR":
+                fee_eur = fee
+            else:
+                fee_asset_price = get_historical_price_eur(asset, int(float(ledger.get("time", 0))))
+                fee_eur = fee * fee_asset_price if fee_asset_price else Decimal(0)
+            ledger_fee_map[refid] = ledger_fee_map.get(refid, Decimal(0)) + fee_eur
+
     # Process transactions and generate tax report entries
+    report_entries = []
+    for tx in kraken_trades:
+        refid = tx.get("refid")
+        fee_str = tx.get("fee", "0")
+        asset = tx.get("asset", "")
+        timestamp = int(float(tx.get("time", 0)))
+        try:
+            fee = Decimal(fee_str)
+        except:
+            fee = Decimal(0)
+        # Add linked ledger fee if exists
+        ledger_fee = ledger_fee_map.get(refid, Decimal(0))
+        combined_fee = fee + ledger_fee
+        tx["combined_fee_eur"] = combined_fee
+        # You can store this combined fee in Transaction object if needed
+        # For now, just log it
+        log_event("FeeLink", f"Trade {refid} combined fee: {combined_fee}")
+
+    # For now, call existing processing function (which ignores combined fees)
     report_entries = process_transactions(kraken_trades, kraken_ledger, tax_year)
+
+    # Sum all unique fees globally
+    unique_fee_sum = sum(ledger_fee_map.values())
+    for tx in kraken_trades:
+        fee_str = tx.get("fee", "0")
+        try:
+            fee = Decimal(fee_str)
+        except:
+            fee = Decimal(0)
+        unique_fee_sum += fee
 
     # Generate and print the aggregated tax summary
     total_tax = Decimal(sum(entry.tax_liability for entry in report_entries))
@@ -484,6 +532,9 @@ def main() -> None:
         tax_year=tax_year
     )
     
+    # Log global fee sum
+    log_event("Fees", f"Total combined fees (trades + ledger, unique): {unique_fee_sum}")
+
     # Apply Freigrenze rules
     aggregated_summary.update_tax_status()
 
