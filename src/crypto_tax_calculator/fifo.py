@@ -75,6 +75,12 @@ class FifoCalculator:
             log_event("FIFO Warning", f"Attempted to add purchase with non-positive amount for {asset_upper}: {amount}")
             return
 
+        # Ensure timestamp is not in the future
+        current_time = int(datetime.now(timezone.utc).timestamp())
+        if timestamp > current_time:
+            log_event("FIFO Warning", f"Future timestamp detected for {asset_upper}: {timestamp} > {current_time}, adjusting to current time")
+            timestamp = current_time
+
         lot = HoldingLot(
             asset=asset_upper,
             amount=amount,
@@ -167,7 +173,14 @@ class FifoCalculator:
         lots_to_remove_indices: List[int] = []
         partial_lot_update: Optional[Tuple[int, Decimal]] = None
 
+        # Only consider lots purchased on or before the disposal timestamp
         for idx, lot in enumerate(self.holdings[used_asset_name]):
+            # Skip any lots purchased after this disposal timestamp
+            if lot.purchase_timestamp > timestamp:
+                continue
+            if lot.purchase_timestamp > timestamp:
+                # Skip lots not yet purchased at time of sale
+                continue
             if remaining_to_dispose <= 0:
                 break
 
@@ -318,6 +331,9 @@ class FifoCalculator:
             notes.append(f"WARNING: Insufficient holdings to cover full disposal. Short by {shortage} {asset_upper}")
             log_event("FIFO Warning", f"Disposal of {amount} {asset_upper} (Ref: {refid}) exceeds available holdings by {shortage}")
         
+        # Check if any matched lot was held ≤ 1 year (365 days)
+        taxable_status = any(days <= 365 for days, _ in holding_periods_weighted)
+        
         # Calculate weighted average holding period
         total_weighted_days = Decimal(0)
         total_weight = Decimal(0)
@@ -326,9 +342,6 @@ class FifoCalculator:
             total_weight += weight
         
         avg_holding_period = int(total_weighted_days / total_weight) if total_weight > 0 else 0
-        
-        # Check if any matched lot was held ≤ 1 year (365 days)
-        taxable_status = any(days <= 365 for days, _ in holding_periods_weighted)
         
         # Calculate final values
         total_proceeds_adjusted = total_proceeds - fee_eur  # Adjust for fees

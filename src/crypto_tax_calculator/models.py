@@ -47,6 +47,7 @@ class MatchedLotInfo:
     disposal_cost_basis_eur: Decimal = Decimal(0)
     disposal_gain_loss_eur: Decimal = Decimal(0)
     disposal_fee_eur: Decimal = Decimal(0)
+    is_taxable: bool = False
     
     @property
     def formatted_purchase_date(self) -> str:

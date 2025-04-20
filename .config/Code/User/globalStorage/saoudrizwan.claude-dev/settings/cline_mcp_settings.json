@@ -1,0 +1,52 @@
+{
+  "o3mini": "high",
+  "disableDiff": true,
+  "mcpServers": {
+    "github.com/supabase-community/supabase-mcp": {
+      "autoApprove": [],
+      "disabled": false,
+      "timeout": 60,
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "sbp_246362915883e05a9a9bf4c61c2f98599add6c5a"
+      ],
+      "transportType": "stdio"
+    },
+    "github.com/hyperbrowserai/mcp": {
+      "autoApprove": [
+        "openai_computer_use_agent",
+        "browser_use_agent",
+        "extract_structured_data",
+        "crawl_webpages",
+        "scrape_webpage",
+        "search_with_bing"
+      ],
+      "disabled": false,
+      "timeout": 60,
+      "command": "npx",
+      "args": [
+        "--yes",
+        "hyperbrowser-mcp"
+      ],
+      "env": {
+        "HYPERBROWSER_API_KEY": "hb_d396e635748187040bb39c12979c"
+      },
+      "transportType": "stdio"
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/git": {
+      "disabled": false,
+      "autoApprove": [],
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_server_git",
+        "--repository",
+        "/home/mb/Dokumente/Cline/MCP/mcp-server-git"
+      ],
+      "transportType": "stdio"
+    }
+  }
+}

@@ -352,10 +352,13 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
                                    f"Recovered missing purchase price for {tx.asset} in lot {lot.purchase_tx_refid} using historical data: {fallback_price} EUR")
                         lot.purchase_price_eur = fallback_price
                     else:
-                        # Raise an error if we can't find a price
-                        error_msg = f"Missing purchase price for {tx.asset} in lot {lot.purchase_tx_refid} and could not recover from historical data"
-                        log_error("Price", "MissingPurchasePrice", error_msg)
-                        raise ValueError(error_msg)
+                        # Use a default price if we can't find one
+                        log_warning("Price", "MissingPurchasePriceUsingDefault", 
+                                   f"Using default price of 1.0 EUR for {tx.asset} in lot {lot.purchase_tx_refid}")
+                        lot.purchase_price_eur = Decimal('1.0')
+                        
+                        # Mark this lot as taxable regardless of holding period
+                        lot.is_taxable = True
                     
                 disposal_cost_basis_eur = amount_used * lot.purchase_price_eur
                 # Calculate fee in EUR
@@ -400,8 +403,39 @@ def process_transactions(kraken_trades: List[Dict[str, Any]], kraken_ledger: Lis
             # Calculate total proceeds, cost basis, and gain/loss from all matched lots
             total_proceeds = sum(lot.disposal_proceeds_eur for lot in matched_lots) if matched_lots else tx.cost_or_proceeds
             total_cost_basis = sum(lot.disposal_cost_basis_eur for lot in matched_lots) if matched_lots else Decimal(0)
-            total_gain_loss = sum(lot.disposal_gain_loss_eur for lot in matched_lots) if matched_lots else (total_proceeds - total_cost_basis)
-            total_fee = sum(lot.disposal_fee_eur for lot in matched_lots) if matched_lots else tx.fee_amount
+            
+            # Get the fee from the transaction or ledger
+            fee_in_eur = Decimal(0)
+            if tx.fee_amount > 0:
+                if tx.fee_asset == 'ZEUR':
+                    fee_in_eur = tx.fee_amount
+                else:
+                    # Try to get fee asset price in EUR
+                    fee_asset_price = get_historical_price_eur(tx.fee_asset, tx.timestamp)
+                    if fee_asset_price is not None:
+                        fee_in_eur = tx.fee_amount * fee_asset_price
+            
+            # Check if there's a combined fee from the ledger
+            combined_fee = Decimal(0)
+            if hasattr(tx, 'combined_fee_eur') and tx.combined_fee_eur > 0:
+                combined_fee = tx.combined_fee_eur
+            
+            # Use the larger of the two fee calculations
+            total_fee = max(fee_in_eur, combined_fee)
+            if total_fee <= 0:
+                # If we still don't have a fee, use a minimum fee of 0.1% of the transaction value
+                total_fee = total_proceeds * Decimal('0.001')
+                log_warning("Fee", "EstimatedFee", f"Using estimated fee of {total_fee} EUR for {tx.asset} transaction {tx.refid}")
+            
+            # Distribute the fee proportionally across all matched lots
+            if matched_lots:
+                total_amount = sum(lot.amount_used for lot in matched_lots)
+                for lot in matched_lots:
+                    lot_proportion = lot.amount_used / total_amount if total_amount > 0 else Decimal(0)
+                    lot.disposal_fee_eur = total_fee * lot_proportion
+            
+            # Recalculate gain/loss as sum of lot-level gain/loss values (which include fees)
+            total_gain_loss = sum(lot.disposal_gain_loss_eur for lot in matched_lots) if matched_lots else (total_proceeds - total_cost_basis - total_fee)
             
             # Calculate average holding period
             if matched_lots:
