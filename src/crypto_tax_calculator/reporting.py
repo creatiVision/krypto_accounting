@@ -228,7 +228,8 @@ def export_as_year_csv(summary: AggregatedTaxSummary, tax_year: int, output_path
                 transaction_date = entry_date.strftime("%Y-%m-%d")
                 tx_type = "SPEND"
                 tax_category = "Privates Veräußerungsgeschäft (§23 EStG)"
-                sale_price_per_unit = (float(entry.disposal_proceeds_eur) if entry.disposal_proceeds_eur is not None else float(entry.cost_or_proceeds)) / float(abs(entry.amount)) if float(entry.amount) != 0 else 0
+                sale_price_per_unit = (float(entry.disposal_proceeds_eur) if entry.disposal_proceeds_eur is not None 
+                                       else float(entry.cost_or_proceeds)) / float(abs(entry.amount)) if float(entry.amount) != 0 else 0
                 if not entry.matched_lots:
                     row = [
                         str(row_counter),
@@ -242,7 +243,8 @@ def export_as_year_csv(summary: AggregatedTaxSummary, tax_year: int, output_path
                         transaction_date,
                         f"{sale_price_per_unit:.4f}",
                         "0.00",
-                        str(entry.disposal_proceeds_eur if entry.disposal_proceeds_eur is not None else entry.cost_or_proceeds),
+                        str(entry.disposal_proceeds_eur if entry.disposal_proceeds_eur is not None 
+                            else entry.cost_or_proceeds),
                         str(entry.disposal_fee_eur),
                         str(entry.disposal_gain_loss_eur),
                         str(entry.holding_period_days_avg),
@@ -347,7 +349,8 @@ def export_as_year_csv(summary: AggregatedTaxSummary, tax_year: int, output_path
                     continue
                 entry_count += 1
                 transaction_date = entry_date.strftime("%Y-%m-%d")
-                sale_price_per_unit = (float(entry.disposal_proceeds_eur) if entry.disposal_proceeds_eur is not None else float(entry.cost_or_proceeds)) / float(abs(entry.amount)) if float(entry.amount) != 0 else 0
+                sale_price_per_unit = (float(entry.disposal_proceeds_eur) if entry.disposal_proceeds_eur is not None 
+                                       else float(entry.cost_or_proceeds)) / float(abs(entry.amount)) if float(entry.amount) != 0 else 0
                 f.write(f"Veräußerung #{entry_count}:\n")
                 f.write(f"  Datum: {transaction_date}\n")
                 f.write(f"  Asset: {entry.asset}\n")
@@ -363,6 +366,9 @@ def export_as_year_csv(summary: AggregatedTaxSummary, tax_year: int, output_path
                         f.write(f"      Verkaufserlös: {float(lot.amount_used) * sale_price_per_unit:.2f} €\n")
                         gain_loss = (sale_price_per_unit - float(lot.original_lot_purchase_price_eur)) * float(lot.amount_used) - float(lot.disposal_fee_eur)
                         f.write(f"      Gewinn/Verlust: {gain_loss:.2f} €\n")
+                        lot_taxable = "Ja" if lot.holding_period_days <= 365 else "Nein"
+                        lot_tax_reason = "Haltedauer <= 1 Jahr, steuerpflichtig" if lot.holding_period_days <= 365 else "Haltedauer > 1 Jahr, steuerfrei"
+                        f.write(f"      Steuerpflichtig: {lot_taxable} ({lot_tax_reason})\n")
                 else:
                     f.write("  FIFO-Zuordnung:\n")
                     f.write("    - Keine Kaufdaten gefunden\n")
@@ -373,9 +379,7 @@ def export_as_year_csv(summary: AggregatedTaxSummary, tax_year: int, output_path
                     f.write(f"  Gewinn/Verlust: {total_gl:.2f} €\n")
                 else:
                     f.write(f"  Gewinn/Verlust: {float(entry.disposal_gain_loss_eur):.2f} €\n")
-                taxable_status = "Ja" if entry.is_taxable else "Nein"
-                tax_reason = "Haltedauer <= 1 Jahr, steuerpflichtig" if entry.is_taxable else "Haltedauer > 1 Jahr, steuerfrei"
-                f.write(f"  Steuerpflichtig: {taxable_status} ({tax_reason})\n")
+                # Removed summary-level Steuerpflichtig; tax info is now reported per lot.
                 f.write("-"*40 + "\n\n")
             f.write("\n" + "="*80 + "\n")
             f.write("Steuerliche Zusammenfassung\n")
