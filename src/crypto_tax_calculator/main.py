@@ -530,7 +530,7 @@ def main() -> None:
         tx["combined_fee_eur"] = combined_fee
         # You can store this combined fee in Transaction object if needed
         # For now, just log it
-        log_event("FeeLink", f"Trade {refid} combined fee: {combined_fee}")
+        log_event(f"FeeLink: Trade {refid} combined fee: {combined_fee}")
 
     # For now, call existing processing function (which ignores combined fees)
     report_entries = process_transactions(kraken_trades, kraken_ledger, tax_year)
@@ -567,7 +567,7 @@ def main() -> None:
     )
     
     # Log global fee sum
-    log_event("Fees", f"Total combined fees (trades + ledger, unique): {unique_fee_sum}")
+    log_event(f"Fees: Total combined fees (trades + ledger, unique): {unique_fee_sum}")
 
     # Apply Freigrenze rules
     aggregated_summary.update_tax_status()

@@ -1,0 +1,358 @@
+2025-05-24 22:07:37,021 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-05-24 22:07:37,022 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-05-24 22:07:37,023 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-05-24 22:07:37,023 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-05-24 22:07:37,023 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-05-24 22:07:37,024 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-05-24 22:10:37,312 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-05-24 22:10:37,312 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-05-24 22:10:37,312 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-05-24 22:10:37,313 - crypto_tax - INFO - [Database] Retrieved 6 entries from trades {"start_time": 1577836800, "end_time": 1735689600}
+2025-05-24 22:10:37,313 - crypto_tax - INFO - [Kraken] Retrieved 6 cached trades 
+2025-05-24 22:10:37,313 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-05-24 22:10:37,313 - crypto_tax - INFO - [API] [2025-05-24 22:10:37.313] Requesting token for /0/private/TradesHistory 
+2025-05-24 22:10:37,313 - crypto_tax - INFO - [API] [2025-05-24 22:10:37.313] Got token for /0/private/TradesHistory 
+2025-05-24 22:10:37,514 - crypto_tax - INFO - [API] [2025-05-24 22:10:37.514] Received response for /0/private/TradesHistory 
+2025-05-24 22:10:37,514 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1748124637313181", "ofs": 0, "start": 1692023149, "end": 1735689600, "trades": "true"}, "response_code": 200, "duration_ms": 201.10154151916504}
+2025-05-24 22:10:37,515 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-05-24 22:10:37,515 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-05-24 22:10:37,515 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-05-24 22:10:37,515 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-05-24 22:10:37,516 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-05-24 22:10:37,516 - crypto_tax - INFO - [Database] Retrieved 53 entries from ledger {"start_time": 1577836800, "end_time": 1735689600}
+2025-05-24 22:10:37,516 - crypto_tax - INFO - [Kraken] Retrieved 53 cached ledger entries 
+2025-05-24 22:10:37,516 - crypto_tax - INFO - [Kraken API] Fetching ledger entries {"from": "2024-11-06"}
+2025-05-24 22:10:37,516 - crypto_tax - INFO - [API] [2025-05-24 22:10:37.516] Requesting token for /0/private/Ledgers 
+2025-05-24 22:10:37,516 - crypto_tax - INFO - [API] [2025-05-24 22:10:37.516] Got token for /0/private/Ledgers 
+2025-05-24 22:10:37,760 - crypto_tax - INFO - [API] [2025-05-24 22:10:37.760] Received response for /0/private/Ledgers 
+2025-05-24 22:10:37,760 - crypto_tax - INFO - [API] API call to Kraken - /0/private/Ledgers {"method": "POST", "endpoint": "/0/private/Ledgers", "success": true, "params": {"nonce": "1748124637516714", "ofs": 0, "start": 1730935085, "end": 1735689600, "type": "all"}, "response_code": 200, "duration_ms": 243.45111846923828}
+2025-05-24 22:10:37,760 - crypto_tax - INFO - [Kraken API] No new ledger entries fetched 
+2025-05-24 22:10:37,761 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for XETH on 14-08-2023 {"method": "GET", "endpoint": "Fetching price for XETH on 14-08-2023", "success": true}
+2025-05-24 22:10:37,761 - crypto_tax - INFO - [API] [2025-05-24 22:10:37.761] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:37,761 - crypto_tax - INFO - [API] [2025-05-24 22:10:37.761] Got token for /0/public/OHLC 
+2025-05-24 22:10:38,004 - crypto_tax - INFO - [API] [2025-05-24 22:10:38.003] Received response for /0/public/OHLC 
+2025-05-24 22:10:38,005 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ETHEUR", "interval": 1440, "since": 1691971200}, "response_code": 200, "duration_ms": 242.28930473327637}
+2025-05-24 22:10:38,005 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for XETH on 14-08-2023 {"method": "GET", "endpoint": "Fetching price for XETH on 14-08-2023", "success": true}
+2025-05-24 22:10:38,005 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for XETH on 14-08-2023 - exceeds 365 day limit for free API 
+2025-05-24 22:10:38,005 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for XETH on 14-08-2023 {"method": "GET", "endpoint": "Fetching price for XETH on 14-08-2023", "success": true}
+2025-05-24 22:10:38,395 - crypto_tax - INFO - [Price] Got Yahoo Finance price for XETH on 14-08-2023: 1680.732421875 EUR 
+2025-05-24 22:10:38,401 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for XETH on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 19-04-2022", "success": true}
+2025-05-24 22:10:38,401 - crypto_tax - INFO - [API] [2025-05-24 22:10:38.401] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:38,402 - crypto_tax - INFO - [API] [2025-05-24 22:10:38.402] Got token for /0/public/OHLC 
+2025-05-24 22:10:38,621 - crypto_tax - INFO - [API] [2025-05-24 22:10:38.621] Received response for /0/public/OHLC 
+2025-05-24 22:10:38,623 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ETHEUR", "interval": 1440, "since": 1650326400}, "response_code": 200, "duration_ms": 219.7403907775879}
+2025-05-24 22:10:38,623 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for XETH on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 19-04-2022", "success": true}
+2025-05-24 22:10:38,623 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for XETH on 19-04-2022 - exceeds 365 day limit for free API 
+2025-05-24 22:10:38,623 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for XETH on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 19-04-2022", "success": true}
+2025-05-24 22:10:38,680 - crypto_tax - INFO - [Price] Got Yahoo Finance price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-05-24 22:10:38,681 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for ADA on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 19-04-2022", "success": true}
+2025-05-24 22:10:38,681 - crypto_tax - INFO - [API] [2025-05-24 22:10:38.681] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:38,681 - crypto_tax - INFO - [API] [2025-05-24 22:10:38.681] Got token for /0/public/OHLC 
+2025-05-24 22:10:38,927 - crypto_tax - INFO - [API] [2025-05-24 22:10:38.927] Received response for /0/public/OHLC 
+2025-05-24 22:10:38,928 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ADAEUR", "interval": 1440, "since": 1650326400}, "response_code": 200, "duration_ms": 245.63264846801758}
+2025-05-24 22:10:38,929 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for ADA on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 19-04-2022", "success": true}
+2025-05-24 22:10:38,929 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for ADA on 19-04-2022 - exceeds 365 day limit for free API 
+2025-05-24 22:10:38,929 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for ADA on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 19-04-2022", "success": true}
+2025-05-24 22:10:39,143 - crypto_tax - INFO - [Price] Got Yahoo Finance price for ADA on 19-04-2022: 0.8830839991569519 EUR 
+2025-05-24 22:10:39,144 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for SOL on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for SOL on 19-04-2022", "success": true}
+2025-05-24 22:10:39,144 - crypto_tax - INFO - [API] [2025-05-24 22:10:39.144] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:39,144 - crypto_tax - INFO - [API] [2025-05-24 22:10:39.144] Got token for /0/public/OHLC 
+2025-05-24 22:10:39,369 - crypto_tax - INFO - [API] [2025-05-24 22:10:39.369] Received response for /0/public/OHLC 
+2025-05-24 22:10:39,371 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "SOLEUR", "interval": 1440, "since": 1650326400}, "response_code": 200, "duration_ms": 224.71356391906738}
+2025-05-24 22:10:39,371 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for SOL on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for SOL on 19-04-2022", "success": true}
+2025-05-24 22:10:39,371 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for SOL on 19-04-2022 - exceeds 365 day limit for free API 
+2025-05-24 22:10:39,371 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for SOL on 19-04-2022 {"method": "GET", "endpoint": "Fetching price for SOL on 19-04-2022", "success": true}
+2025-05-24 22:10:39,571 - crypto_tax - INFO - [Price] Got Yahoo Finance price for SOL on 19-04-2022: 100.58084106445312 EUR 
+2025-05-24 22:10:39,571 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for XETH on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 28-12-2022", "success": true}
+2025-05-24 22:10:39,572 - crypto_tax - INFO - [API] [2025-05-24 22:10:39.572] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:39,572 - crypto_tax - INFO - [API] [2025-05-24 22:10:39.572] Got token for /0/public/OHLC 
+2025-05-24 22:10:39,818 - crypto_tax - INFO - [API] [2025-05-24 22:10:39.818] Received response for /0/public/OHLC 
+2025-05-24 22:10:39,819 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ETHEUR", "interval": 1440, "since": 1672185600}, "response_code": 200, "duration_ms": 246.19126319885254}
+2025-05-24 22:10:39,819 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for XETH on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 28-12-2022", "success": true}
+2025-05-24 22:10:39,820 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for XETH on 28-12-2022 - exceeds 365 day limit for free API 
+2025-05-24 22:10:39,820 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for XETH on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for XETH on 28-12-2022", "success": true}
+2025-05-24 22:10:39,956 - crypto_tax - INFO - [Price] Got Yahoo Finance price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-05-24 22:10:39,957 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for ADA on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 28-12-2022", "success": true}
+2025-05-24 22:10:39,957 - crypto_tax - INFO - [API] [2025-05-24 22:10:39.957] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:39,957 - crypto_tax - INFO - [API] [2025-05-24 22:10:39.957] Got token for /0/public/OHLC 
+2025-05-24 22:10:40,387 - crypto_tax - INFO - [API] [2025-05-24 22:10:40.387] Received response for /0/public/OHLC 
+2025-05-24 22:10:40,388 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ADAEUR", "interval": 1440, "since": 1672185600}, "response_code": 200, "duration_ms": 429.3091297149658}
+2025-05-24 22:10:40,388 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for ADA on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 28-12-2022", "success": true}
+2025-05-24 22:10:40,388 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for ADA on 28-12-2022 - exceeds 365 day limit for free API 
+2025-05-24 22:10:40,388 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for ADA on 28-12-2022 {"method": "GET", "endpoint": "Fetching price for ADA on 28-12-2022", "success": true}
+2025-05-24 22:10:40,449 - crypto_tax - INFO - [Price] Got Yahoo Finance price for ADA on 28-12-2022: 0.23368200659751892 EUR 
+2025-05-24 22:10:40,450 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for MATIC on 20-04-2023 {"method": "GET", "endpoint": "Fetching price for MATIC on 20-04-2023", "success": true}
+2025-05-24 22:10:40,450 - crypto_tax - INFO - [API] [2025-05-24 22:10:40.450] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:40,450 - crypto_tax - INFO - [API] [2025-05-24 22:10:40.450] Got token for /0/public/OHLC 
+2025-05-24 22:10:40,619 - crypto_tax - INFO - [API] [2025-05-24 22:10:40.619] Received response for /0/public/OHLC 
+2025-05-24 22:10:40,619 - crypto_tax - ERROR - [API] ERROR - KrakenCall: Failed API call to /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": false, "params": {"pair": "MATICEUR", "interval": 1440, "since": 1681948800}, "response_code": 200, "duration_ms": 168.60270500183105, "error": "Kraken API returned error: ['EQuery:Invalid asset pair']"}
+2025-05-24 22:10:40,619 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for MATIC on 20-04-2023 {"method": "GET", "endpoint": "Fetching price for MATIC on 20-04-2023", "success": true}
+2025-05-24 22:10:40,620 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for MATIC on 20-04-2023 - exceeds 365 day limit for free API 
+2025-05-24 22:10:40,620 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for MATIC on 20-04-2023 {"method": "GET", "endpoint": "Fetching price for MATIC on 20-04-2023", "success": true}
+2025-05-24 22:10:40,764 - crypto_tax - INFO - [Price] Got Yahoo Finance price for MATIC on 20-04-2023: 0.9912070035934448 EUR 
+2025-05-24 22:10:40,765 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for AVAX on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for AVAX on 24-04-2023", "success": true}
+2025-05-24 22:10:40,765 - crypto_tax - INFO - [API] [2025-05-24 22:10:40.765] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:40,765 - crypto_tax - INFO - [API] [2025-05-24 22:10:40.765] Got token for /0/public/OHLC 
+2025-05-24 22:10:40,980 - crypto_tax - INFO - [API] [2025-05-24 22:10:40.980] Received response for /0/public/OHLC 
+2025-05-24 22:10:40,981 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "AVAXEUR", "interval": 1440, "since": 1682294400}, "response_code": 200, "duration_ms": 214.74027633666992}
+2025-05-24 22:10:40,981 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for AVAX on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for AVAX on 24-04-2023", "success": true}
+2025-05-24 22:10:40,982 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for AVAX on 24-04-2023 - exceeds 365 day limit for free API 
+2025-05-24 22:10:40,982 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for AVAX on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for AVAX on 24-04-2023", "success": true}
+2025-05-24 22:10:41,117 - crypto_tax - INFO - [Price] Got Yahoo Finance price for AVAX on 24-04-2023: 15.343591690063477 EUR 
+2025-05-24 22:10:41,117 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:10:41,118 - crypto_tax - INFO - [API] [2025-05-24 22:10:41.118] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:41,118 - crypto_tax - INFO - [API] [2025-05-24 22:10:41.118] Got token for /0/public/OHLC 
+2025-05-24 22:10:41,337 - crypto_tax - INFO - [API] [2025-05-24 22:10:41.337] Received response for /0/public/OHLC 
+2025-05-24 22:10:41,338 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ARBEUR", "interval": 1440, "since": 1682294400}, "response_code": 200, "duration_ms": 219.36845779418945}
+2025-05-24 22:10:41,339 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:10:41,339 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for ARB on 24-04-2023 - exceeds 365 day limit for free API 
+2025-05-24 22:10:41,339 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:10:41,700 - crypto_tax - WARNING - [Price] WARNING - NotFound: Could not find price for ARB on 24-04-2023 
+2025-05-24 22:10:41,701 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for APT on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for APT on 24-04-2023", "success": true}
+2025-05-24 22:10:41,701 - crypto_tax - INFO - [API] [2025-05-24 22:10:41.701] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:41,701 - crypto_tax - INFO - [API] [2025-05-24 22:10:41.701] Got token for /0/public/OHLC 
+2025-05-24 22:10:41,998 - crypto_tax - INFO - [API] [2025-05-24 22:10:41.998] Received response for /0/public/OHLC 
+2025-05-24 22:10:41,999 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "APTEUR", "interval": 1440, "since": 1682294400}, "response_code": 200, "duration_ms": 297.4886894226074}
+2025-05-24 22:10:42,000 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for APT on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for APT on 24-04-2023", "success": true}
+2025-05-24 22:10:42,000 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for APT on 24-04-2023 - exceeds 365 day limit for free API 
+2025-05-24 22:10:42,000 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for APT on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for APT on 24-04-2023", "success": true}
+2025-05-24 22:10:42,360 - crypto_tax - ERROR - [Price] ERROR - YahooFinanceError: Error fetching Yahoo Finance price for APT at 1682347393 | Exception: HTTPError: HTTP Error 404:  
+2025-05-24 22:10:42,361 - crypto_tax - ERROR - [Price] Traceback: Traceback (most recent call last):
+  File "/app/src/crypto_tax_calculator/price_api.py", line 372, in _get_yfinance_price
+    hist = ticker.history(start=start_date, end=end_date)
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/utils.py", line 99, in wrapper
+    result = func(*args, **kwargs)
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/base.py", line 96, in history
+    return self._lazy_load_price_history().history(*args, **kwargs)
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/base.py", line 102, in _lazy_load_price_history
+    self._price_history = PriceHistory(self._data, self.ticker, self._get_ticker_tz(timeout=10))
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/base.py", line 127, in _get_ticker_tz
+    if k in self.info:
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/ticker.py", line 159, in info
+    return self.get_info()
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/base.py", line 293, in get_info
+    data = self._quote.info
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/scrapers/quote.py", line 511, in info
+    self._fetch_info()
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/scrapers/quote.py", line 610, in _fetch_info
+    result = self._fetch(modules=modules)
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/scrapers/quote.py", line 590, in _fetch
+    result = self._data.get_raw_json(_QUOTE_SUMMARY_URL_ + f"/{self._symbol}", params=params_dict)
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/data.py", line 425, in get_raw_json
+    response.raise_for_status()
+  File "/home/swebot/.local/lib/python3.10/site-packages/curl_cffi/requests/models.py", line 167, in raise_for_status
+    raise HTTPError(f"HTTP Error {self.status_code}: {self.reason}", 0, self)
+curl_cffi.requests.exceptions.HTTPError: HTTP Error 404: 
+
+2025-05-24 22:10:42,361 - crypto_tax - WARNING - [Price] WARNING - NotFound: Could not find price for APT on 24-04-2023 
+2025-05-24 22:10:42,362 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for XETH on 06-11-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 06-11-2024", "success": true}
+2025-05-24 22:10:42,362 - crypto_tax - INFO - [API] [2025-05-24 22:10:42.362] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:42,362 - crypto_tax - INFO - [API] [2025-05-24 22:10:42.362] Got token for /0/public/OHLC 
+2025-05-24 22:10:42,586 - crypto_tax - INFO - [API] [2025-05-24 22:10:42.586] Received response for /0/public/OHLC 
+2025-05-24 22:10:42,586 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ETHEUR", "interval": 1440, "since": 1730851200}, "response_code": 200, "duration_ms": 223.69670867919922}
+2025-05-24 22:10:42,586 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for XETH on 06-11-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 06-11-2024", "success": true}
+2025-05-24 22:10:42,702 - crypto_tax - INFO - [Price] Got CoinGecko price for XETH on 06-11-2024: 2216.2975932743243 EUR 
+2025-05-24 22:10:42,703 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for XETH on 04-01-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 04-01-2024", "success": true}
+2025-05-24 22:10:42,703 - crypto_tax - INFO - [API] [2025-05-24 22:10:42.703] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:42,703 - crypto_tax - INFO - [API] [2025-05-24 22:10:42.703] Got token for /0/public/OHLC 
+2025-05-24 22:10:42,921 - crypto_tax - INFO - [API] [2025-05-24 22:10:42.921] Received response for /0/public/OHLC 
+2025-05-24 22:10:42,922 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ETHEUR", "interval": 1440, "since": 1704326400}, "response_code": 200, "duration_ms": 218.4622287750244}
+2025-05-24 22:10:42,923 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for XETH on 04-01-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 04-01-2024", "success": true}
+2025-05-24 22:10:42,923 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for XETH on 04-01-2024 - exceeds 365 day limit for free API 
+2025-05-24 22:10:42,923 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for XETH on 04-01-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 04-01-2024", "success": true}
+2025-05-24 22:10:43,011 - crypto_tax - INFO - [Price] Got Yahoo Finance price for XETH on 04-01-2024: 2023.3577880859375 EUR 
+2025-05-24 22:10:43,011 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 1.21944125773847534 EUR for XETH transaction LINGB3-WZ2QZ-PLQWZ5 
+2025-05-24 22:10:43,012 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for ADA on 10-01-2024 {"method": "GET", "endpoint": "Fetching price for ADA on 10-01-2024", "success": true}
+2025-05-24 22:10:43,012 - crypto_tax - INFO - [API] [2025-05-24 22:10:43.012] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:43,012 - crypto_tax - INFO - [API] [2025-05-24 22:10:43.012] Got token for /0/public/OHLC 
+2025-05-24 22:10:43,289 - crypto_tax - INFO - [API] [2025-05-24 22:10:43.289] Received response for /0/public/OHLC 
+2025-05-24 22:10:43,290 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ADAEUR", "interval": 1440, "since": 1704844800}, "response_code": 200, "duration_ms": 277.1029472351074}
+2025-05-24 22:10:43,290 - crypto_tax - INFO - [Price] Got Kraken price for ADA on 10-01-2024: 0.530188 EUR 
+2025-05-24 22:10:43,291 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 0.71906957931617200 EUR for ADA transaction LEVU23-MZZJG-Q4VLVQ 
+2025-05-24 22:10:43,291 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for AVAX on 09-05-2024 {"method": "GET", "endpoint": "Fetching price for AVAX on 09-05-2024", "success": true}
+2025-05-24 22:10:43,291 - crypto_tax - INFO - [API] [2025-05-24 22:10:43.291] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:43,291 - crypto_tax - INFO - [API] [2025-05-24 22:10:43.291] Got token for /0/public/OHLC 
+2025-05-24 22:10:43,664 - crypto_tax - INFO - [API] [2025-05-24 22:10:43.664] Received response for /0/public/OHLC 
+2025-05-24 22:10:43,664 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "AVAXEUR", "interval": 1440, "since": 1715212800}, "response_code": 200, "duration_ms": 372.4527359008789}
+2025-05-24 22:10:43,665 - crypto_tax - INFO - [Price] Got Kraken price for AVAX on 09-05-2024: 31.37 EUR 
+2025-05-24 22:10:43,665 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 0.497207284900000 EUR for AVAX transaction LU4N27-QT7QR-US5PBA 
+2025-05-24 22:10:43,666 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-05-24 22:10:43,666 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-05-24 22:10:43,666 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-05-24 22:10:43,666 - crypto_tax - INFO - [Database] Retrieved 6 entries from trades {"start_time": 1262304000, "end_time": 1716488247}
+2025-05-24 22:10:43,666 - crypto_tax - INFO - [Kraken] Retrieved 6 cached trades 
+2025-05-24 22:10:43,666 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-05-24 22:10:43,666 - crypto_tax - INFO - [API] [2025-05-24 22:10:43.666] Requesting token for /0/private/TradesHistory 
+2025-05-24 22:10:43,666 - crypto_tax - INFO - [API] [2025-05-24 22:10:43.666] Got token for /0/private/TradesHistory 
+2025-05-24 22:10:43,830 - crypto_tax - INFO - [API] [2025-05-24 22:10:43.830] Received response for /0/private/TradesHistory 
+2025-05-24 22:10:43,830 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1748124643666901", "ofs": 0, "start": 1692023149, "end": 1716488247, "trades": "true"}, "response_code": 200, "duration_ms": 162.94503211975098}
+2025-05-24 22:10:43,830 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-05-24 22:10:43,830 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-05-24 22:10:43,830 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-05-24 22:10:43,831 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-05-24 22:10:43,831 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-05-24 22:10:43,831 - crypto_tax - INFO - [Database] Retrieved 45 entries from ledger {"start_time": 1262304000, "end_time": 1716488247}
+2025-05-24 22:10:43,831 - crypto_tax - INFO - [Kraken] Retrieved 45 cached ledger entries 
+2025-05-24 22:10:43,831 - crypto_tax - INFO - [Kraken] Using cached ledger entries only (cache is up to date) 
+2025-05-24 22:10:43,832 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-05-24 22:10:43,832 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-05-24 22:10:43,832 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for XETH on 23-05-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 23-05-2024", "success": true}
+2025-05-24 22:10:43,832 - crypto_tax - INFO - [API] [2025-05-24 22:10:43.832] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:43,832 - crypto_tax - INFO - [API] [2025-05-24 22:10:43.832] Got token for /0/public/OHLC 
+2025-05-24 22:10:44,111 - crypto_tax - INFO - [API] [2025-05-24 22:10:44.111] Received response for /0/public/OHLC 
+2025-05-24 22:10:44,111 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ETHEUR", "interval": 1440, "since": 1716422400}, "response_code": 200, "duration_ms": 278.1529426574707}
+2025-05-24 22:10:44,112 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for XETH on 23-05-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 23-05-2024", "success": true}
+2025-05-24 22:10:44,112 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for XETH on 23-05-2024 - exceeds 365 day limit for free API 
+2025-05-24 22:10:44,112 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for XETH on 23-05-2024 {"method": "GET", "endpoint": "Fetching price for XETH on 23-05-2024", "success": true}
+2025-05-24 22:10:44,178 - crypto_tax - INFO - [Price] Got Yahoo Finance price for XETH on 23-05-2024: 3452.314697265625 EUR 
+2025-05-24 22:10:44,179 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 1.55909984043212891 EUR for XETH transaction LJC3TF-S3X4H-G6MWWN 
+2025-05-24 22:10:44,179 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for ADA on 23-05-2024 {"method": "GET", "endpoint": "Fetching price for ADA on 23-05-2024", "success": true}
+2025-05-24 22:10:44,179 - crypto_tax - INFO - [API] [2025-05-24 22:10:44.179] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:44,179 - crypto_tax - INFO - [API] [2025-05-24 22:10:44.179] Got token for /0/public/OHLC 
+2025-05-24 22:10:44,402 - crypto_tax - INFO - [API] [2025-05-24 22:10:44.402] Received response for /0/public/OHLC 
+2025-05-24 22:10:44,402 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ADAEUR", "interval": 1440, "since": 1716422400}, "response_code": 200, "duration_ms": 222.53751754760742}
+2025-05-24 22:10:44,403 - crypto_tax - INFO - [Price] Got Kraken price for ADA on 23-05-2024: 0.424228 EUR 
+2025-05-24 22:10:44,403 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 0.19178696986979600 EUR for ADA transaction LL3RIA-PCIBK-57YB77 
+2025-05-24 22:10:44,404 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for ARB on 23-05-2024 {"method": "GET", "endpoint": "Fetching price for ARB on 23-05-2024", "success": true}
+2025-05-24 22:10:44,404 - crypto_tax - INFO - [API] [2025-05-24 22:10:44.404] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:44,404 - crypto_tax - INFO - [API] [2025-05-24 22:10:44.404] Got token for /0/public/OHLC 
+2025-05-24 22:10:44,626 - crypto_tax - INFO - [API] [2025-05-24 22:10:44.626] Received response for /0/public/OHLC 
+2025-05-24 22:10:44,627 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ARBEUR", "interval": 1440, "since": 1716422400}, "response_code": 200, "duration_ms": 221.93431854248047}
+2025-05-24 22:10:44,627 - crypto_tax - INFO - [Price] Got Kraken price for ARB on 23-05-2024: 1.0688 EUR 
+2025-05-24 22:10:44,628 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:10:44,628 - crypto_tax - INFO - [API] [2025-05-24 22:10:44.628] Requesting token for /0/public/OHLC 
+2025-05-24 22:10:44,628 - crypto_tax - INFO - [API] [2025-05-24 22:10:44.628] Got token for /0/public/OHLC 
+2025-05-24 22:10:44,691 - crypto_tax - INFO - [API] [2025-05-24 22:10:44.691] Received response for /0/public/OHLC 
+2025-05-24 22:10:44,692 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ARBEUR", "interval": 1440, "since": 1682294400}, "response_code": 200, "duration_ms": 62.760353088378906}
+2025-05-24 22:10:44,693 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:10:44,693 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for ARB on 24-04-2023 - exceeds 365 day limit for free API 
+2025-05-24 22:10:44,693 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:10:44,695 - crypto_tax - WARNING - [Price] WARNING - NotFound: Could not find price for ARB on 24-04-2023 
+2025-05-24 22:10:44,695 - crypto_tax - WARNING - [Price] WARNING - MissingPurchasePriceUsingDefault: Using default price of 1.0 EUR for ARB in lot L3EB3W-RSLGQ-YJVEUL 
+2025-05-24 22:10:44,695 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 0.184432128000 EUR for ARB transaction LLUIJV-CZIDY-N4VJ3N 
+2025-05-24 22:10:44,702 - crypto_tax - INFO - [Export] Created German format tax report: export/krypto_steuer_2024.csv 
+2025-05-24 22:10:44,702 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
+2025-05-24 22:10:44,703 - crypto_tax - INFO - [Export] Successfully exported tax report in German format for year 2024 
+2025-05-24 22:14:47,537 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-05-24 22:14:47,537 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-05-24 22:14:47,538 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-05-24 22:14:47,538 - crypto_tax - INFO - [Database] Retrieved 6 entries from trades {"start_time": 1577836800, "end_time": 1735689600}
+2025-05-24 22:14:47,538 - crypto_tax - INFO - [Kraken] Retrieved 6 cached trades 
+2025-05-24 22:14:47,538 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-05-24 22:14:47,538 - crypto_tax - INFO - [API] [2025-05-24 22:14:47.538] Requesting token for /0/private/TradesHistory 
+2025-05-24 22:14:47,538 - crypto_tax - INFO - [API] [2025-05-24 22:14:47.538] Got token for /0/private/TradesHistory 
+2025-05-24 22:14:47,915 - crypto_tax - INFO - [API] [2025-05-24 22:14:47.915] Received response for /0/private/TradesHistory 
+2025-05-24 22:14:47,915 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1748124887538477", "ofs": 0, "start": 1692023149, "end": 1735689600, "trades": "true"}, "response_code": 200, "duration_ms": 376.7814636230469}
+2025-05-24 22:14:47,916 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-05-24 22:14:47,916 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-05-24 22:14:47,916 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2020-01-01", "end_date": "2025-01-01"}
+2025-05-24 22:14:47,916 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-05-24 22:14:47,917 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-05-24 22:14:47,917 - crypto_tax - INFO - [Database] Retrieved 53 entries from ledger {"start_time": 1577836800, "end_time": 1735689600}
+2025-05-24 22:14:47,917 - crypto_tax - INFO - [Kraken] Retrieved 53 cached ledger entries 
+2025-05-24 22:14:47,917 - crypto_tax - INFO - [Kraken API] Fetching ledger entries {"from": "2024-11-06"}
+2025-05-24 22:14:47,917 - crypto_tax - INFO - [API] [2025-05-24 22:14:47.917] Requesting token for /0/private/Ledgers 
+2025-05-24 22:14:47,917 - crypto_tax - INFO - [API] [2025-05-24 22:14:47.917] Got token for /0/private/Ledgers 
+2025-05-24 22:14:48,091 - crypto_tax - INFO - [API] [2025-05-24 22:14:48.091] Received response for /0/private/Ledgers 
+2025-05-24 22:14:48,091 - crypto_tax - INFO - [API] API call to Kraken - /0/private/Ledgers {"method": "POST", "endpoint": "/0/private/Ledgers", "success": true, "params": {"nonce": "1748124887917485", "ofs": 0, "start": 1730935085, "end": 1735689600, "type": "all"}, "response_code": 200, "duration_ms": 173.87676239013672}
+2025-05-24 22:14:48,092 - crypto_tax - INFO - [Kraken API] No new ledger entries fetched 
+2025-05-24 22:14:48,092 - crypto_tax - INFO - [Price] Using cached price for XETH on 14-08-2023: 1680.732421875 EUR 
+2025-05-24 22:14:48,094 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-05-24 22:14:48,094 - crypto_tax - INFO - [Price] Using cached price for ADA on 19-04-2022: 0.8830839991569519 EUR 
+2025-05-24 22:14:48,094 - crypto_tax - INFO - [Price] Using cached price for SOL on 19-04-2022: 100.58084106445312 EUR 
+2025-05-24 22:14:48,094 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-05-24 22:14:48,095 - crypto_tax - INFO - [Price] Using cached price for ADA on 28-12-2022: 0.23368200659751892 EUR 
+2025-05-24 22:14:48,095 - crypto_tax - INFO - [Price] Using cached price for MATIC on 20-04-2023: 0.9912070035934448 EUR 
+2025-05-24 22:14:48,095 - crypto_tax - INFO - [Price] Using cached price for AVAX on 24-04-2023: 15.343591690063477 EUR 
+2025-05-24 22:14:48,095 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:14:48,095 - crypto_tax - INFO - [API] [2025-05-24 22:14:48.095] Requesting token for /0/public/OHLC 
+2025-05-24 22:14:48,095 - crypto_tax - INFO - [API] [2025-05-24 22:14:48.095] Got token for /0/public/OHLC 
+2025-05-24 22:14:48,311 - crypto_tax - INFO - [API] [2025-05-24 22:14:48.311] Received response for /0/public/OHLC 
+2025-05-24 22:14:48,312 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ARBEUR", "interval": 1440, "since": 1682294400}, "response_code": 200, "duration_ms": 215.50440788269043}
+2025-05-24 22:14:48,313 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:14:48,313 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for ARB on 24-04-2023 - exceeds 365 day limit for free API 
+2025-05-24 22:14:48,313 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:14:49,048 - crypto_tax - WARNING - [Price] WARNING - NotFound: Could not find price for ARB on 24-04-2023 
+2025-05-24 22:14:49,048 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for APT on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for APT on 24-04-2023", "success": true}
+2025-05-24 22:14:49,048 - crypto_tax - INFO - [API] [2025-05-24 22:14:49.048] Requesting token for /0/public/OHLC 
+2025-05-24 22:14:49,049 - crypto_tax - INFO - [API] [2025-05-24 22:14:49.049] Got token for /0/public/OHLC 
+2025-05-24 22:14:49,276 - crypto_tax - INFO - [API] [2025-05-24 22:14:49.276] Received response for /0/public/OHLC 
+2025-05-24 22:14:49,278 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "APTEUR", "interval": 1440, "since": 1682294400}, "response_code": 200, "duration_ms": 227.88667678833008}
+2025-05-24 22:14:49,278 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for APT on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for APT on 24-04-2023", "success": true}
+2025-05-24 22:14:49,278 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for APT on 24-04-2023 - exceeds 365 day limit for free API 
+2025-05-24 22:14:49,278 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for APT on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for APT on 24-04-2023", "success": true}
+2025-05-24 22:14:49,744 - crypto_tax - ERROR - [Price] ERROR - YahooFinanceError: Error fetching Yahoo Finance price for APT at 1682347393 | Exception: HTTPError: HTTP Error 404:  
+2025-05-24 22:14:49,745 - crypto_tax - ERROR - [Price] Traceback: Traceback (most recent call last):
+  File "/app/src/crypto_tax_calculator/price_api.py", line 372, in _get_yfinance_price
+    hist = ticker.history(start=start_date, end=end_date)
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/utils.py", line 99, in wrapper
+    result = func(*args, **kwargs)
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/base.py", line 96, in history
+    return self._lazy_load_price_history().history(*args, **kwargs)
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/base.py", line 102, in _lazy_load_price_history
+    self._price_history = PriceHistory(self._data, self.ticker, self._get_ticker_tz(timeout=10))
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/base.py", line 127, in _get_ticker_tz
+    if k in self.info:
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/ticker.py", line 159, in info
+    return self.get_info()
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/base.py", line 293, in get_info
+    data = self._quote.info
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/scrapers/quote.py", line 511, in info
+    self._fetch_info()
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/scrapers/quote.py", line 610, in _fetch_info
+    result = self._fetch(modules=modules)
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/scrapers/quote.py", line 590, in _fetch
+    result = self._data.get_raw_json(_QUOTE_SUMMARY_URL_ + f"/{self._symbol}", params=params_dict)
+  File "/home/swebot/.local/lib/python3.10/site-packages/yfinance/data.py", line 425, in get_raw_json
+    response.raise_for_status()
+  File "/home/swebot/.local/lib/python3.10/site-packages/curl_cffi/requests/models.py", line 167, in raise_for_status
+    raise HTTPError(f"HTTP Error {self.status_code}: {self.reason}", 0, self)
+curl_cffi.requests.exceptions.HTTPError: HTTP Error 404: 
+
+2025-05-24 22:14:49,745 - crypto_tax - WARNING - [Price] WARNING - NotFound: Could not find price for APT on 24-04-2023 
+2025-05-24 22:14:49,745 - crypto_tax - INFO - [Price] Using cached price for XETH on 06-11-2024: 2216.2975932743243 EUR 
+2025-05-24 22:14:49,746 - crypto_tax - INFO - [Price] Using cached price for XETH on 04-01-2024: 2023.3577880859375 EUR 
+2025-05-24 22:14:49,746 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 1.21944125773847534 EUR for XETH transaction LINGB3-WZ2QZ-PLQWZ5 
+2025-05-24 22:14:49,746 - crypto_tax - INFO - [Price] Using cached price for ADA on 10-01-2024: 0.530188 EUR 
+2025-05-24 22:14:49,746 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 0.71906957931617200 EUR for ADA transaction LEVU23-MZZJG-Q4VLVQ 
+2025-05-24 22:14:49,746 - crypto_tax - INFO - [Price] Using cached price for AVAX on 09-05-2024: 31.37 EUR 
+2025-05-24 22:14:49,747 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 0.497207284900000 EUR for AVAX transaction LU4N27-QT7QR-US5PBA 
+2025-05-24 22:14:49,747 - crypto_tax - INFO - [Kraken] Retrieving trades {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-05-24 22:14:49,747 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-05-24 22:14:49,747 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-05-24 22:14:49,747 - crypto_tax - INFO - [Database] Retrieved 6 entries from trades {"start_time": 1262304000, "end_time": 1716488247}
+2025-05-24 22:14:49,747 - crypto_tax - INFO - [Kraken] Retrieved 6 cached trades 
+2025-05-24 22:14:49,747 - crypto_tax - INFO - [Kraken API] Fetching trades {"from": "2023-08-14"}
+2025-05-24 22:14:49,748 - crypto_tax - INFO - [API] [2025-05-24 22:14:49.747] Requesting token for /0/private/TradesHistory 
+2025-05-24 22:14:49,748 - crypto_tax - INFO - [API] [2025-05-24 22:14:49.748] Got token for /0/private/TradesHistory 
+2025-05-24 22:14:50,144 - crypto_tax - INFO - [API] [2025-05-24 22:14:50.144] Received response for /0/private/TradesHistory 
+2025-05-24 22:14:50,145 - crypto_tax - INFO - [API] API call to Kraken - /0/private/TradesHistory {"method": "POST", "endpoint": "/0/private/TradesHistory", "success": true, "params": {"nonce": "1748124889747993", "ofs": 0, "start": 1692023149, "end": 1716488247, "trades": "true"}, "response_code": 200, "duration_ms": 396.44742012023926}
+2025-05-24 22:14:50,145 - crypto_tax - INFO - [Kraken API] Fetched 0 new trades 
+2025-05-24 22:14:50,145 - crypto_tax - INFO - [Database] No entries to save to trades 
+2025-05-24 22:14:50,145 - crypto_tax - INFO - [Kraken] Retrieving ledger entries {"start_date": "2010-01-01", "end_date": "2024-05-23"}
+2025-05-24 22:14:50,145 - crypto_tax - INFO - [Database] Connection opened to Kraken cache database 
+2025-05-24 22:14:50,146 - crypto_tax - INFO - [Database] Connection closed to Kraken cache database 
+2025-05-24 22:14:50,146 - crypto_tax - INFO - [Database] Retrieved 45 entries from ledger {"start_time": 1262304000, "end_time": 1716488247}
+2025-05-24 22:14:50,146 - crypto_tax - INFO - [Kraken] Retrieved 45 cached ledger entries 
+2025-05-24 22:14:50,146 - crypto_tax - INFO - [Kraken] Using cached ledger entries only (cache is up to date) 
+2025-05-24 22:14:50,146 - crypto_tax - INFO - [Price] Using cached price for XETH on 19-04-2022: 2875.37109375 EUR 
+2025-05-24 22:14:50,147 - crypto_tax - INFO - [Price] Using cached price for XETH on 28-12-2022: 1119.576904296875 EUR 
+2025-05-24 22:14:50,147 - crypto_tax - INFO - [Price] Using cached price for XETH on 23-05-2024: 3452.314697265625 EUR 
+2025-05-24 22:14:50,147 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 1.55909984043212891 EUR for XETH transaction LJC3TF-S3X4H-G6MWWN 
+2025-05-24 22:14:50,147 - crypto_tax - INFO - [Price] Using cached price for ADA on 23-05-2024: 0.424228 EUR 
+2025-05-24 22:14:50,147 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 0.19178696986979600 EUR for ADA transaction LL3RIA-PCIBK-57YB77 
+2025-05-24 22:14:50,147 - crypto_tax - INFO - [Price] Using cached price for ARB on 23-05-2024: 1.0688 EUR 
+2025-05-24 22:14:50,148 - crypto_tax - INFO - [API] API call to Kraken - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:14:50,148 - crypto_tax - INFO - [API] [2025-05-24 22:14:50.148] Requesting token for /0/public/OHLC 
+2025-05-24 22:14:50,148 - crypto_tax - INFO - [API] [2025-05-24 22:14:50.148] Got token for /0/public/OHLC 
+2025-05-24 22:14:50,302 - crypto_tax - INFO - [API] [2025-05-24 22:14:50.302] Received response for /0/public/OHLC 
+2025-05-24 22:14:50,303 - crypto_tax - INFO - [API] API call to Kraken - /0/public/OHLC {"method": "GET", "endpoint": "/0/public/OHLC", "success": true, "params": {"pair": "ARBEUR", "interval": 1440, "since": 1682294400}, "response_code": 200, "duration_ms": 153.96857261657715}
+2025-05-24 22:14:50,304 - crypto_tax - INFO - [API] API call to CoinGecko - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:14:50,304 - crypto_tax - WARNING - [Price] WARNING - CoinGeckoLimitation: Skipping CoinGecko API call for ARB on 24-04-2023 - exceeds 365 day limit for free API 
+2025-05-24 22:14:50,304 - crypto_tax - INFO - [API] API call to Yahoo Finance - Fetching price for ARB on 24-04-2023 {"method": "GET", "endpoint": "Fetching price for ARB on 24-04-2023", "success": true}
+2025-05-24 22:14:50,306 - crypto_tax - WARNING - [Price] WARNING - NotFound: Could not find price for ARB on 24-04-2023 
+2025-05-24 22:14:50,306 - crypto_tax - WARNING - [Price] WARNING - MissingPurchasePriceUsingDefault: Using default price of 1.0 EUR for ARB in lot L3EB3W-RSLGQ-YJVEUL 
+2025-05-24 22:14:50,306 - crypto_tax - WARNING - [Fee] WARNING - EstimatedFee: Using estimated fee of 0.184432128000 EUR for ARB transaction LLUIJV-CZIDY-N4VJ3N 
+2025-05-24 22:14:50,308 - crypto_tax - INFO - [Export] Created German format tax report: export/krypto_steuer_2024.csv 
+2025-05-24 22:14:50,308 - crypto_tax - INFO - [Export] Created FIFO Nachweis text report: export/fifo_nachweis_2024.txt 
+2025-05-24 22:14:50,308 - crypto_tax - INFO - [Export] Successfully exported tax report in German format for year 2024 

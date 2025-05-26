@@ -131,34 +131,6 @@ def test_trades_api():
         
         print(f"Fetching trades from {datetime.fromtimestamp(start_time)} to {datetime.fromtimestamp(end_time)}")
         
-        # Modify the source code if needed to fix the 'trads' parameter issue
-        import re
-        from pathlib import Path
-        
-        api_file = Path(project_root) / "src" / "crypto_tax_calculator" / "kraken_api.py"
-        if api_file.exists():
-            with open(api_file, 'r') as f:
-                content = f.read()
-            
-            if 'trads' in content:
-                print("⚠️  Found 'trads' parameter in kraken_api.py (should be 'trades')")
-                fixed_content = content.replace('"trads": "true"', '"trades": "true"')
-                
-                # Create a backup
-                with open(f"{api_file}.bak", 'w') as f:
-                    f.write(content)
-                
-                # Save the fixed content
-                with open(api_file, 'w') as f:
-                    f.write(fixed_content)
-                
-                print("✓ Fixed 'trads' parameter in kraken_api.py")
-                
-                # Reload the module
-                import importlib
-                importlib.reload(sys.modules['src.crypto_tax_calculator.kraken_api'])
-                from src.crypto_tax_calculator.kraken_api import get_trades
-        
         # Time the API call
         start = time.time()
         trades = get_trades(api_key, api_secret, start_time, end_time)
