@@ -25,7 +25,7 @@ from typing import List, Dict, Any, Optional, Union, Callable
 #     print("Excel export disabled. Install openpyxl for Excel support: pip install openpyxl")
 EXCEL_SUPPORT = False
 
-from .models import TaxReportEntry, AggregatedTaxSummary, MatchedLotInfo
+from .models import TaxReportEntry, AggregatedTaxSummary, MatchedLotInfo, Transaction
 from .logging_utils import log_event, log_error
 
 # Ensure the logs directory exists
@@ -210,58 +210,53 @@ def export_as_year_csv(summary: AggregatedTaxSummary, tax_year: int, output_path
     try:
         year_filename = f"krypto_steuer_{tax_year}.csv"
         year_path = output_path / year_filename
-        with open(year_path, 'w', newline='') as csvfile:
+        with open(year_path, 'w', newline='', encoding='utf-8') as csvfile:
             fieldnames = [
-                'Zeile', 'Typ', 'Steuer-Kategorie', 'Transaktions-Datum', 'Asset', 'Anzahl',
-                'Kaufdatum', 'Einkaufspreis (EUR)/Stk', 'Verkaufsdatum', 'Verkaufspreis (EUR)/Stk',
-                'Verkaufserlös (EUR)', 'Gebühren (EUR)', 'Gewinn / Verlust (EUR)',
-                'Haltedauer (Tage)', 'Haltedauer > 1 Jahr', 'Steuerpflichtig', 'Steuergrund',
-                'FIFO-Details', 'Notizen'
+                'Bezeichnung des Wirtschaftsguts',
+                'Anschaffungsdatum',
+                'Anschaffungskosten',
+                'Veräußerungsdatum',
+                'Veräußerungspreis oder Wert bei Abgabe',
+                'Werbungskosten (Veräußerungskosten)',
+                'Gewinn/Verlust'
             ]
             writer = csv.writer(csvfile, delimiter=delimiter)
             writer.writerow(fieldnames)
-            row_counter = 1
+
             for entry in summary.tax_report_entries:
                 entry_date = datetime.fromtimestamp(entry.timestamp)
                 if entry_date.year != tax_year:
                     continue
-                transaction_date = entry_date.strftime("%Y-%m-%d")
-                tx_type = "SPEND"
-                tax_category = "Privates Veräußerungsgeschäft (§23 EStG)"
-                sale_price_per_unit = (float(entry.disposal_proceeds_eur) if entry.disposal_proceeds_eur is not None 
-                                       else float(entry.cost_or_proceeds)) / float(abs(entry.amount)) if float(entry.amount) != 0 else 0
+                transaction_date = entry_date.strftime("%d.%m.%Y")
+                
+                sale_price_per_unit = Decimal('0')
+                if entry.amount and entry.amount != Decimal('0'): 
+                    proceeds = entry.disposal_proceeds_eur if entry.disposal_proceeds_eur is not None else entry.cost_or_proceeds
+                    if proceeds is not None: 
+                         sale_price_per_unit = Decimal(proceeds) / Decimal(abs(entry.amount))
+
                 if not entry.matched_lots:
+                    bezeichnung_unmatched = f"Verkauf {entry.asset} am {transaction_date} - Details zu Anschaffung unbekannt"
                     row = [
-                        str(row_counter),
-                        tx_type,
-                        tax_category,
-                        transaction_date,
-                        entry.asset,
-                        str(abs(entry.amount)),
-                        "Unbekannt",
-                        "0.0000",
-                        transaction_date,
-                        f"{sale_price_per_unit:.4f}",
-                        "0.00",
-                        str(entry.disposal_proceeds_eur if entry.disposal_proceeds_eur is not None 
-                            else entry.cost_or_proceeds),
-                        str(entry.disposal_fee_eur),
-                        str(entry.disposal_gain_loss_eur),
-                        str(entry.holding_period_days_avg),
-                        "Nein",
-                        "Ja" if entry.is_taxable else "Nein",
-                        "Haltedauer <= 1 Jahr" if entry.is_taxable else "Haltedauer > 1 Jahr",
-                        "Keine FIFO-Details verfügbar",
-                        "Warnung: Keine Kaufdaten gefunden"
+                        bezeichnung_unmatched,
+                        "Unbekannt", 
+                        "0.00",      
+                        transaction_date, 
+                        f"{(entry.disposal_proceeds_eur if entry.disposal_proceeds_eur is not None else entry.cost_or_proceeds):.2f}", 
+                        f"{(entry.disposal_fee_eur if entry.disposal_fee_eur is not None else Decimal('0')):.2f}", 
+                        f"{(entry.disposal_gain_loss_eur if entry.disposal_gain_loss_eur is not None else Decimal('0')):.2f}"
                     ]
                     writer.writerow(row)
-                    row_counter += 1
                     continue
+
                 for matched_lot in entry.matched_lots:
-                    lot_date = matched_lot.original_lot_purchase_date.strftime("%Y-%m-%d")
-                    lot_price = float(matched_lot.original_lot_purchase_price_eur)
-                    is_taxable_text = "Ja" if entry.is_taxable else "Nein"
-                    tax_reason = "Haltedauer <= 1 Jahr" if entry.is_taxable else "Haltedauer > 1 Jahr"
+                    lot_purchase_date = matched_lot.original_lot_purchase_date.strftime("%d.%m.%Y")
+                    
+                    acquisition_cost_lot_portion = Decimal(matched_lot.original_lot_purchase_price_eur) * Decimal(matched_lot.amount_used)
+                    proceeds_lot_portion = Decimal(sale_price_per_unit) * Decimal(matched_lot.amount_used)
+                    fees_lot_portion = Decimal(matched_lot.disposal_fee_eur if matched_lot.disposal_fee_eur is not None else Decimal('0'))
+                    gain_loss_lot_portion = proceeds_lot_portion - acquisition_cost_lot_portion - fees_lot_portion
+                    
                     if entry_date.tzinfo is not None and matched_lot.original_lot_purchase_date.tzinfo is None:
                         entry_date_naive = entry_date.replace(tzinfo=None)
                         holding_period_days = (entry_date_naive - matched_lot.original_lot_purchase_date).days
@@ -270,117 +265,101 @@ def export_as_year_csv(summary: AggregatedTaxSummary, tax_year: int, output_path
                         holding_period_days = (entry_date - lot_date_naive).days
                     else:
                         holding_period_days = (entry_date - matched_lot.original_lot_purchase_date).days
-                    # Updated gain_loss calculation without dummy fallback
-                    lot_gain_loss = (sale_price_per_unit - float(matched_lot.original_lot_purchase_price_eur)) * float(matched_lot.amount_used) - float(matched_lot.disposal_fee_eur)
+                    matched_lot.holding_period_days = holding_period_days
+
+                    bezeichnung_matched = f"Verkauf {entry.asset} am {transaction_date} - Lot: Kauf {Decimal(matched_lot.amount_used):.8f} {entry.asset} am {lot_purchase_date} @ {Decimal(matched_lot.original_lot_purchase_price_eur):.4f} EUR/{entry.asset}, Haltedauer {holding_period_days} Tage"
                     row = [
-                        str(row_counter),
-                        tx_type,
-                        tax_category,
+                        bezeichnung_matched,
+                        lot_purchase_date,
+                        f"{acquisition_cost_lot_portion:.2f}",
                         transaction_date,
-                        entry.asset,
-                        str(matched_lot.amount_used),
-                        lot_date,
-                        f"{lot_price:.4f}",
-                        transaction_date,
-                        f"{sale_price_per_unit:.4f}",
-                        f"{float(matched_lot.amount_used) * lot_price:.2f}",
-                        f"{float(matched_lot.amount_used) * sale_price_per_unit:.2f}",
-                        f"{float(matched_lot.disposal_fee_eur):.2f}",
-                        f"{lot_gain_loss:.2f}",
-                        str(holding_period_days),
-                        "Ja" if holding_period_days > 365 else "Nein",
-                        is_taxable_text,
-                        tax_reason,
-                        f"Lot {matched_lot.original_lot_refid}",
-                        "; ".join(entry.notes) if hasattr(entry, 'notes') and entry.notes else ""
+                        f"{proceeds_lot_portion:.2f}",
+                        f"{fees_lot_portion:.2f}",
+                        f"{gain_loss_lot_portion:.2f}"
                     ]
                     writer.writerow(row)
-                    row_counter += 1
-            writer.writerow([])
-            writer.writerow(["--- Steuerliche Zusammenfassung ---"])
-            writer.writerow(["Steuerjahr:", str(tax_year)])
-            writer.writerow([])
-            total_proceeds = Decimal(0)
-            total_costs = Decimal(0)
-            total_sell_fees = Decimal(0)
-            total_buy_fees = Decimal(0)
-            for entry in summary.tax_report_entries:
-                entry_date = datetime.fromtimestamp(entry.timestamp)
-                if entry_date.year == tax_year:
-                    total_proceeds += entry.disposal_proceeds_eur if entry.disposal_proceeds_eur is not None else Decimal('0')
-                    total_costs += entry.disposal_cost_basis_eur if entry.disposal_cost_basis_eur is not None else Decimal('0')
-                    total_sell_fees += entry.disposal_fee_eur if entry.disposal_fee_eur is not None else Decimal('0')
-                    if entry.matched_lots:
-                        for lot in entry.matched_lots:
-                            total_buy_fees += lot.disposal_fee_eur if lot.disposal_fee_eur is not None else Decimal('0')
-            total_fees = total_sell_fees + total_buy_fees
-            net_amount = total_proceeds - total_costs - total_sell_fees
-            writer.writerow(["Private Veräußerungsgeschäfte (§23 EStG):"])
-            writer.writerow(["Verkaufserlös:", str(total_proceeds)])
-            writer.writerow(["Einkaufskosten:", str(total_costs)])
-            writer.writerow(["Verkaufsgebühren:", str(total_sell_fees)])
-            writer.writerow(["Anschaffungsgebühren:", str(total_buy_fees)])
-            writer.writerow(["Gesamtgebühren:", str(total_fees)])
-            if net_amount >= 0:
-                writer.writerow(["Gesamtgewinn (§23):", str(net_amount)])
-            else:
-                writer.writerow(["Gesamtverlust (§23):", str(net_amount)])
-            writer.writerow(["Freigrenze (§23):", "1000.00" if tax_year >= 2023 else "600.00"])
-            writer.writerow(["Steuerpflichtig (§23):", "Ja" if summary.private_sales_taxable else "Nein"])
-            if summary.total_other_income and summary.total_other_income > Decimal('0'):
-                writer.writerow([])
-                writer.writerow(["Sonstige Einkünfte (§22 Nr. 3 EStG):"])
-                writer.writerow(["Gesamteinkünfte (z.B. Staking):", str(summary.total_other_income)])
-                writer.writerow(["Freigrenze (§22):", str(summary.freigrenze_other_income)])
-                writer.writerow(["Steuerpflichtig (§22):", "Ja" if summary.other_income_taxable else "Nein"])
+        
         fifo_txt_filename = f"fifo_nachweis_{tax_year}.txt"
         fifo_txt_path = ensure_output_dir("export") / fifo_txt_filename
-        with open(fifo_txt_path, 'w') as f:
+        with open(fifo_txt_path, 'w', encoding='utf-8') as f:
             f.write(f"FIFO Nachweis für Steuerjahr {tax_year}\n")
             f.write("="*80 + "\n\n")
             f.write("Gemäß BMF-Schreiben zur steuerlichen Behandlung von Kryptowährungen\n")
             f.write("werden Veräußerungen nach dem FIFO-Prinzip (First In - First Out) behandelt.\n\n")
             f.write("Detailaufstellung der Veräußerungen:\n")
             f.write("-"*80 + "\n\n")
-            entry_count = 0
-            for entry in summary.tax_report_entries:
-                entry_date = datetime.fromtimestamp(entry.timestamp)
-                if entry_date.year != tax_year:
+            
+            for report_entry_txt in summary.tax_report_entries:
+                entry_date_obj_txt = datetime.fromtimestamp(report_entry_txt.timestamp)
+                if entry_date_obj_txt.year != tax_year:
                     continue
-                entry_count += 1
-                transaction_date = entry_date.strftime("%Y-%m-%d")
-                sale_price_per_unit = (float(entry.disposal_proceeds_eur) if entry.disposal_proceeds_eur is not None 
-                                       else float(entry.cost_or_proceeds)) / float(abs(entry.amount)) if float(entry.amount) != 0 else 0
-                f.write(f"Veräußerung #{entry_count}:\n")
-                f.write(f"  Datum: {transaction_date}\n")
-                f.write(f"  Asset: {entry.asset}\n")
-                f.write(f"  Verkaufte Menge: {abs(float(entry.amount)):.8f}\n")
-                f.write(f"  Verkaufspreis/Stk: {sale_price_per_unit:.4f} €\n")
-                f.write(f"  Gesamterlös: {float(entry.disposal_proceeds_eur) if entry.disposal_proceeds_eur is not None else float(entry.cost_or_proceeds):.2f} €\n")
-                f.write(f"  Gebühren: {float(entry.disposal_fee_eur):.2f} €\n")
-                if entry.matched_lots:
-                    f.write("  FIFO-Zuordnung:\n")
-                    for j, lot in enumerate(entry.matched_lots, 1):
-                        purchase_date = lot.original_lot_purchase_date.strftime("%Y-%m-%d")
-                        f.write(f"    - Lot {j}: Kauf von {float(lot.amount_used):.8f} {entry.asset} am {purchase_date} @ Einkaufspreis: {float(lot.original_lot_purchase_price_eur):.4f} €/{entry.asset}, Haltedauer: {lot.holding_period_days} Tage\n")
-                        f.write(f"      Verkaufserlös: {float(lot.amount_used) * sale_price_per_unit:.2f} €\n")
-                        gain_loss = (sale_price_per_unit - float(lot.original_lot_purchase_price_eur)) * float(lot.amount_used) - float(lot.disposal_fee_eur)
-                        f.write(f"      Gewinn/Verlust: {gain_loss:.2f} €\n")
-                        lot_taxable = "Ja" if lot.holding_period_days <= 365 else "Nein"
-                        lot_tax_reason = "Haltedauer <= 1 Jahr, steuerpflichtig" if lot.holding_period_days <= 365 else "Haltedauer > 1 Jahr, steuerfrei"
-                        f.write(f"      Steuerpflichtig: {lot_taxable} ({lot_tax_reason})\n")
-                else:
-                    f.write("  FIFO-Zuordnung:\n")
-                    f.write("    - Keine Kaufdaten gefunden\n")
-                if entry.matched_lots:
-                    total_gl = 0
-                    for lot in entry.matched_lots:
-                        total_gl += (sale_price_per_unit - float(lot.original_lot_purchase_price_eur)) * float(lot.amount_used) - float(lot.disposal_fee_eur)
-                    f.write(f"  Gewinn/Verlust: {total_gl:.2f} €\n")
-                else:
-                    f.write(f"  Gewinn/Verlust: {float(entry.disposal_gain_loss_eur):.2f} €\n")
-                # Removed summary-level Steuerpflichtig; tax info is now reported per lot.
-                f.write("-"*40 + "\n\n")
+
+                transaction_date_ddmmyyyy_txt = entry_date_obj_txt.strftime("%d.%m.%Y")
+
+                sale_price_per_unit_txt_entry = Decimal('0')
+                if report_entry_txt.amount and \
+                   isinstance(report_entry_txt.amount, Decimal) and \
+                   report_entry_txt.amount.is_normal() and \
+                   Decimal(abs(report_entry_txt.amount)) != Decimal('0'):
+                    entry_proceeds_raw_txt = report_entry_txt.disposal_proceeds_eur if report_entry_txt.disposal_proceeds_eur is not None else report_entry_txt.cost_or_proceeds
+                    entry_proceeds_txt = Decimal(entry_proceeds_raw_txt if entry_proceeds_raw_txt is not None else '0')
+                    sale_price_per_unit_txt_entry = entry_proceeds_txt / Decimal(abs(report_entry_txt.amount))
+                
+                f.write("--------------------------------------------------------------------------------\n")
+                f.write(f"Veräußerung von {report_entry_txt.asset} am {transaction_date_ddmmyyyy_txt}\n")
+                f.write(f"Referenz-ID der Veräußerung: {report_entry_txt.refid}\n")
+                f.write("--------------------------------------------------------------------------------\n")
+
+                if report_entry_txt.matched_lots:
+                    for lot_index, matched_lot_txt in enumerate(report_entry_txt.matched_lots):
+                        purchase_date_ddmmyyyy_txt = matched_lot_txt.original_lot_purchase_date.strftime("%d.%m.%Y")
+                        holding_period_days_val_txt = matched_lot_txt.holding_period_days if isinstance(matched_lot_txt.holding_period_days, int) else 0
+
+                        bezeichnung_lot_txt = f"Verkauf {report_entry_txt.asset} am {transaction_date_ddmmyyyy_txt} - Lot (RefID: {matched_lot_txt.original_lot_refid}): Kauf {Decimal(matched_lot_txt.amount_used):.8f} {report_entry_txt.asset} am {purchase_date_ddmmyyyy_txt} @ {Decimal(matched_lot_txt.original_lot_purchase_price_eur):.4f} EUR/{report_entry_txt.asset}, Haltedauer: {holding_period_days_val_txt} Tage"
+                        f.write(f"Zeile 42: Bezeichnung: {bezeichnung_lot_txt}\n")
+                        
+                        f.write(f"Zeile 43: Zeitpunkt der Anschaffung: {purchase_date_ddmmyyyy_txt}\n")
+                        f.write(f"Zeile 43: Zeitpunkt der Veräußerung: {transaction_date_ddmmyyyy_txt}\n")
+
+                        proceeds_lot_portion_txt = sale_price_per_unit_txt_entry * Decimal(matched_lot_txt.amount_used)
+                        f.write(f"Zeile 44: Veräußerungspreis: {proceeds_lot_portion_txt:.2f} EUR\n")
+                        
+                        acquisition_cost_lot_portion_txt = Decimal(matched_lot_txt.original_lot_purchase_price_eur) * Decimal(matched_lot_txt.amount_used)
+                        f.write(f"Zeile 45: Anschaffungskosten: {acquisition_cost_lot_portion_txt:.2f} EUR\n")
+                        
+                        fees_lot_portion_txt = Decimal(matched_lot_txt.disposal_fee_eur if matched_lot_txt.disposal_fee_eur is not None else '0')
+                        f.write(f"Zeile 46: Werbungskosten (Veräußerungsgebühren): {fees_lot_portion_txt:.2f} EUR\n")
+                        
+                        gain_loss_lot_portion_txt = proceeds_lot_portion_txt - acquisition_cost_lot_portion_txt - fees_lot_portion_txt
+                        f.write(f"Zeile 47: Gewinn / Verlust: {gain_loss_lot_portion_txt:.2f} EUR\n")
+                        
+                        tax_status_lot_txt = 'Ja' if holding_period_days_val_txt <= 365 else 'Nein'
+                        holding_comparison_lot_txt = '<=' if holding_period_days_val_txt <= 365 else '>'
+                        f.write(f"  Steuerpflichtig: {tax_status_lot_txt} (Haltedauer {holding_comparison_lot_txt} 1 Jahr)\n")
+                        f.write("    --- (Ende Lot) ---\n\n")
+                else: 
+                    f.write(f"Zeile 42: Bezeichnung: Verkauf {report_entry_txt.asset} am {transaction_date_ddmmyyyy_txt} - Details zu Anschaffung unbekannt.\n")
+                    f.write(f"Zeile 43: Zeitpunkt der Anschaffung: Unbekannt\n")
+                    f.write(f"Zeile 43: Zeitpunkt der Veräußerung: {transaction_date_ddmmyyyy_txt}\n")
+
+                    unmatched_proceeds_raw_txt = report_entry_txt.disposal_proceeds_eur if report_entry_txt.disposal_proceeds_eur is not None else report_entry_txt.cost_or_proceeds
+                    unmatched_proceeds_val_txt = Decimal(unmatched_proceeds_raw_txt if unmatched_proceeds_raw_txt is not None else '0')
+                    f.write(f"Zeile 44: Veräußerungspreis: {unmatched_proceeds_val_txt:.2f} EUR\n")
+                    
+                    f.write(f"Zeile 45: Anschaffungskosten: 0.00 EUR\n")
+                    
+                    unmatched_fees_val_txt = Decimal(report_entry_txt.disposal_fee_eur if report_entry_txt.disposal_fee_eur is not None else '0')
+                    f.write(f"Zeile 46: Werbungskosten (Veräußerungsgebühren): {unmatched_fees_val_txt:.2f} EUR\n")
+                    
+                    gain_loss_unmatched_raw_txt = report_entry_txt.disposal_gain_loss_eur
+                    if gain_loss_unmatched_raw_txt is not None:
+                        gain_loss_unmatched_final_txt = Decimal(gain_loss_unmatched_raw_txt)
+                    else: 
+                        gain_loss_unmatched_final_txt = unmatched_proceeds_val_txt - unmatched_fees_val_txt
+                    
+                    f.write(f"Zeile 47: Gewinn / Verlust: {gain_loss_unmatched_final_txt:.2f} EUR\n")
+                    f.write(f"  Steuerpflichtig: Ja (Details zu Anschaffung unbekannt, Haltedauer kann nicht ermittelt werden)\n\n")
+            
             f.write("\n" + "="*80 + "\n")
             f.write("Steuerliche Zusammenfassung\n")
             f.write("="*80 + "\n\n")
@@ -388,13 +367,13 @@ def export_as_year_csv(summary: AggregatedTaxSummary, tax_year: int, output_path
             total_proceeds = Decimal(0)
             total_costs = Decimal(0)
             total_fees = Decimal(0)
-            for entry in summary.tax_report_entries:
+            for entry in summary.tax_report_entries: 
                 entry_date = datetime.fromtimestamp(entry.timestamp)
                 if entry_date.year == tax_year:
                     total_proceeds += entry.disposal_proceeds_eur if entry.disposal_proceeds_eur is not None else Decimal('0')
                     total_costs += entry.disposal_cost_basis_eur if entry.disposal_cost_basis_eur is not None else Decimal('0')
                     total_fees += entry.disposal_fee_eur if entry.disposal_fee_eur is not None else Decimal('0')
-            net_amount = float(total_proceeds) - float(total_costs) - float(total_fees)
+            net_amount = float(total_proceeds) - float(total_costs) - float(total_fees) 
             f.write("Private Veräußerungsgeschäfte (§23 EStG):\n")
             f.write(f"  Verkaufserlös: {float(total_proceeds):.2f} €\n")
             f.write(f"  Einkaufskosten: {float(total_costs):.2f} €\n")
@@ -420,4 +399,62 @@ def export_as_year_csv(summary: AggregatedTaxSummary, tax_year: int, output_path
     except Exception as e:
         error_msg = f"Failed to export year CSV report: {str(e)}"
         log_error("reporting", "YearCSVExportError", error_msg, details={"tax_year": tax_year}, exception=e)
+        return ""
+
+def export_raw_transactions_csv(all_transactions: List[Transaction], output_dir: str = "export") -> str:
+    """Exports all raw transactions to a CSV file."""
+    try:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"Crypto-Steueraufstellung_Raw_Transactions_{timestamp}.csv"
+        
+        output_path_obj = ensure_output_dir(output_dir)
+        file_path = output_path_obj / filename
+
+        header = [
+            'Transaction ID', 'Time (UTC)', 'Type', 'Subtype', 'Asset', 'Wallet',
+            'Amount', 'Currency of Amount', 'Price per Unit (Original)', 'Currency of Price (Original)',
+            'Total Value (Original)', 'Currency of Total Value (Original)', 'Fee (Original)', 'Currency of Fee (Original)',
+            'Value (EUR)', 'Fee (EUR)', 'Notes'
+        ]
+
+        with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile, delimiter=';')
+            writer.writerow(header)
+
+            for tx in all_transactions:
+                # Helper to convert None to empty string, and Decimal to string
+                def fmt(value):
+                    if value is None:
+                        return ""
+                    if isinstance(value, Decimal):
+                        return str(value) # Decimals use '.' by default
+                    return str(value)
+
+                row = [
+                    fmt(tx.refid),
+                    tx.datetime_utc.strftime("%Y-%m-%d %H:%M:%S") if tx.datetime_utc else "",
+                    fmt(tx.internal_type if tx.internal_type else tx.kraken_type),
+                    fmt(tx.kraken_subtype),
+                    fmt(tx.asset),
+                    "N/A",  # Wallet
+                    fmt(tx.amount),
+                    fmt(tx.asset), # Currency of Amount
+                    fmt(tx.price),
+                    fmt(tx.quote_asset), # Currency of Price (Original)
+                    fmt(tx.cost_or_proceeds),
+                    fmt(tx.quote_asset), # Currency of Total Value (Original)
+                    fmt(tx.fee_amount),
+                    fmt(tx.fee_asset), # Currency of Fee (Original)
+                    fmt(tx.value_eur),
+                    fmt(tx.fee_value_eur),
+                    fmt(tx.notes)
+                ]
+                writer.writerow(row)
+        
+        log_event("Export", f"Successfully exported raw transactions to {file_path}")
+        return str(file_path)
+
+    except Exception as e:
+        error_msg = f"Failed to export raw transactions CSV: {str(e)}"
+        log_error("reporting", "RawTransactionExportError", error_msg, details={}, exception=e)
         return ""
