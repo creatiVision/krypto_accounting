@@ -229,3 +229,47 @@ A detailed diagnostic report is generated in JSON format in the `logs/` director
 ## Disclaimer
 
 This tool is provided for informational purposes only and does not constitute tax advice. Tax laws are complex and subject to change. Always consult with a qualified tax professional for advice specific to your situation. The accuracy of the calculations depends on the completeness and correctness of the data provided by the Kraken API and the CoinGecko API.
+
+
+## Core Program Files and Structure
+
+This section outlines the key files and directories that constitute the application, helping users and developers understand its architecture.
+
+### A. Core Application Python Files
+
+These files are located under the `src/crypto_tax_calculator/` directory and contain the primary logic for the application:
+
+*   `main.py`: The main executable script that orchestrates the tax calculation process.
+*   `models.py`: Defines the core data structures used throughout the application, such as `Transaction`, `TaxReportEntry`, `AggregatedTaxSummary`, and `MatchedLotInfo`.
+*   `fifo.py`: Implements the First-In, First-Out (FIFO) calculation logic essential for determining capital gains.
+*   `kraken_cache.py`: Manages fetching transaction and ledger data from the Kraken API and caching it locally.
+*   `price_api.py`: Responsible for fetching historical cryptocurrency prices in EUR from external APIs (e.g., CoinGecko, Yahoo Finance).
+*   `tax_rules.py`: Contains logic specific to German tax rules, such as tax liability calculations and type mapping.
+*   `tx_classifier.py`: Includes functions to classify transactions into relevant categories (e.g., buy, sell, staking reward).
+*   `logging_utils.py`: Provides utilities for consistent logging throughout the application.
+*   `reporting.py`: Handles the generation of output tax reports in various formats (CSV, TXT).
+*   `config.py`: Manages the loading and validation of application configuration from environment variables and JSON files.
+
+### B. Key Non-Python Files & Directories
+
+These files and directories are typically located at the project root or are created during runtime. They are crucial for configuration, data storage, or operation:
+
+*   `.env`: Stores sensitive environment variables, primarily API keys (e.g., `KRAKEN_API_KEY`, `KRAKEN_API_SECRET`). **This file is critical for live operation.**
+*   `requirements.txt`: Lists all Python package dependencies required to run the application. **Essential for setting up the correct environment.**
+*   `config.json` (optional): A JSON file that can hold non-sensitive base configurations. Settings here can be overridden by environment variables.
+*   `data/` (directory):
+    *   `kraken_cache.db`: An SQLite database used to cache data retrieved from the Kraken API, reducing redundant API calls.
+    *   `price_cache/`: A directory used to cache responses from historical price APIs.
+*   `export/` (directory): The default output directory where generated tax reports are saved.
+*   `logs/` (directory): Contains log files generated during application execution, useful for debugging and tracking.
+*   **Google Credentials File** (e.g., `your-credentials-filename.json`): If Google Sheets integration is enabled, this file (path specified in configuration) is required for authentication.
+
+### C. Primary Third-Party Libraries
+
+These are external Python libraries that need to be installed (typically via `pip install -r requirements.txt`):
+
+*   `python-dotenv`: Used for loading configuration settings from the `.env` file.
+*   `requests`: A standard library for making HTTP requests to external APIs (like Kraken and price providers).
+*   `pycoingecko` / `yfinance`: Libraries likely used by `price_api.py` to fetch cryptocurrency market data.
+*   `openpyxl`: Used for reading/writing Excel files (note: current Excel export functionality in `reporting.py` is disabled but the library might be listed as a dependency).
+*   Various Google Client Libraries (e.g., `google-api-python-client`, `google-auth`): Required if the optional Google Sheets export functionality is configured and used.
